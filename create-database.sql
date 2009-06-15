@@ -1,0 +1,42 @@
+CREATE TABLE Stops (
+	id BIGINT UNSIGNED AUTO_INCREMENT,
+	lat DECIMAL(10,7) NOT NULL,
+	lon DECIMAL(10,7) NOT NULL,
+	osm_id BIGINT UNSIGNED,
+	action ENUM('none', 'update', 'delete') NOT NULL DEFAULT 'none',
+	PRIMARY KEY (id),
+	INDEX (lat, lon),
+	UNIQUE (osm_id)
+	)
+ENGINE=InnoDB;
+
+CREATE TABLE Tags (
+	stop_id BIGINT UNSIGNED,
+	name VARCHAR(255) NOT NULL,
+	value TEXT NOT NULL,
+	PRIMARY KEY (stop_id, name),
+	FOREIGN KEY (stop_id)
+		REFERENCES Stops(id)
+		ON DELETE CASCADE
+	)
+ENGINE=InnoDB;
+
+CREATE TABLE Waypoints (
+	id BIGINT UNSIGNED AUTO_INCREMENT,
+	name VARCHAR(100),
+	lat DECIMAL(10,7) NOT NULL,
+	lon DECIMAL(10,7) NOT NULL,
+	PRIMARY KEY (id),
+	INDEX (lat, lon)
+)
+ENGINE=InnoDB;
+
+CREATE TABLE Images (
+	id BIGINT UNSIGNED AUTO_INCREMENT,
+	lat DECIMAL(10,7) NOT NULL,
+	lon DECIMAL(10,7) NOT NULL,
+	file_id CHAR(36) NOT NULL,
+	PRIMARY KEY (id),
+	INDEX (lat, lon)
+)
+ENGINE=InnoDB;

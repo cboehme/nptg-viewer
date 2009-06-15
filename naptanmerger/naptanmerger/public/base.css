@@ -1,0 +1,706 @@
+body
+{ 
+	background-color: white; 
+
+	font-family: sans-serif;
+}
+
+/*
+ * Header: title and tools menu
+ */
+
+h1,
+ul#tools_menu
+{
+	margin: 0px;
+
+	padding-top: 5px;
+	padding-bottom: 2px;
+
+	border-bottom: 6px solid #204a87;
+
+	background-color: #729fcf;
+	color: white;
+
+	font-size: 15px;
+	font-weight: normal;
+}
+
+h1
+{
+	position: absolute;
+	left: 0px;
+	top: 5px;
+	width: 150px;
+	height: 15px;
+	
+	padding-left: 30px;
+	padding-right: 0px;
+
+	letter-spacing: 0.5em;
+}
+
+h1:after
+{
+	position: absolute;
+	right: 0px;
+	top: 0px;
+
+	content: url("edge2.png");
+}
+
+ul#tools_menu
+{
+	position: absolute;
+	top: 5px;
+	right: 0px;
+	width: 500px;
+	height: 15px;
+
+	padding-left: 0px;
+	padding-right: 30px;
+
+	text-align: right;
+}
+
+ul#tools_menu:after
+{
+	position: absolute;
+	left: 0px;
+	top: 0px;
+
+	content: url("edge.png");
+}
+
+ul#tools_menu li
+{
+	display: inline-block;
+
+	padding-left: 20px;
+	padding-right: 0px;
+}
+
+ul#tools_menu a:link,
+ul#tools_menu a:visited
+{
+	color: white;
+
+	text-decoration: none;
+}
+
+ul#tools_menu a:hover,
+ul#tools_menu a:active
+	{ text-decoration: underline; }
+
+/*
+ * Widgets
+ */
+
+h2
+{
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	height: 20px;
+
+	margin: 0px;
+
+	padding-left: 5px;
+	padding-top: 1px;
+	padding-right: 5px;
+	padding-bottom: 1px;
+
+	border-bottom: 1px solid #babdb6;
+
+	font-weight: bold;
+	font-size: small;
+}
+
+button.OkButton
+{
+	position: absolute;
+	right: 100px;
+	bottom: 0px;
+	height: 25px;
+	width: 80px;
+}
+
+button.CancelButton
+{
+	position: absolute;
+	right: 10px;
+	bottom: 0px;
+	height: 25px;
+	width: 80px;
+}
+
+/*
+ * WaypointViewer
+ */
+
+dl.WaypointViewer
+{ 
+	position: absolute;
+	left: 0px;
+	top: 23px;
+	right: 0px;
+	bottom: 0px;
+
+	margin: 0px;
+
+	padding-left: 10px;
+	padding-right: 10px;
+	padding-top: 10px;
+	padding-bottom: 10px;
+
+	font-size: small;
+
+	overflow: auto;
+}
+
+dl.WaypointViewer dt
+{
+	display: inline-block;
+	width: auto;
+	min-width: 80px;
+
+	font-weight: bold;
+}
+
+dl.WaypointViewer dd
+{
+	display: inline; 
+
+	margin-left: 0px;
+}
+
+dl.WaypointViewer dd:after
+	{ content: '\A'; }
+
+/*
+ * StopViewer
+ */
+
+dl.StopViewer
+{
+	position: absolute;
+	left: 0px;
+	top: 23px;
+	right: 0px;
+	bottom: 0px;
+
+	margin: 0px;
+
+	padding-left: 10px;
+	padding-right: 10px;
+	padding-top: 10px;
+	padding-bottom: 10px;
+
+	font-size: small;
+
+	overflow: auto;
+}
+
+dl.StopViewer dt
+{
+	display: inline-block;
+	width: auto;
+	min-width: 180px;
+
+	font-weight: bold;
+}
+
+dl.StopViewer dd
+{
+	display: inline; 
+
+	margin-left: 0px;
+}
+
+dl.StopViewer dd:after
+	{ content: '\A'; }
+
+/*
+ * PositionChooser
+ */
+
+ol.PositionChooser
+{
+	position: absolute;
+	left: 0px;
+	top: 23px;
+	right: 0px;
+	bottom: 0px;
+
+	margin: 0px;
+	padding-left: 0px;
+
+	font-size: small;
+
+	overflow: auto;
+}
+
+ol.PositionChooser li
+{
+	display: block;
+
+	list-style-type: none;
+	list-style-position: inside;
+
+	border-top: 1px dotted #babdb6;
+
+	padding-top: 3px;
+	padding-left: 5px;
+	padding-bottom: 3px;
+}
+
+ol.PositionChooser li:first-child
+	{ border-top: none; }
+
+ol.PositionChooser li.Highlight
+	{ background-color: #fff8c6; }
+
+ol.PositionChooser img
+{
+	width: auto;
+	height: 17px;
+
+	margin: 0px;
+	padding: 0px;
+
+	vertical-align: middle;
+}
+
+/*
+ * StopSelector, MergeSelector, WaypointSelector, PositionSelector
+ */
+
+ol.StopSelector,
+ol.WaypointSelector,
+ol.PositionSelector,
+ol.MergeSelector
+{
+	position: absolute;
+	left: 0px;
+	top: 23px;
+	right: 0px;
+	bottom: 0px;
+
+	margin: 0px;
+	padding-left: 0px;
+
+	overflow: auto;
+
+	font-size: small;
+}
+
+ol.StopSelector li,
+ol.WaypointSelector li,
+ol.PositionSelector li,
+ol.MergeSelector li
+{
+	display: block;
+
+	list-style-type: none;
+	list-style-position: inside;
+
+	border-top: 1px dotted #babdb6;
+
+	padding-top: 3px;
+	padding-left: 5px;
+	padding-bottom: 3px;
+
+	cursor: pointer;
+}
+
+ol.StopSelector li:first-child,
+ol.WaypointSelector li:first-child,
+ol.PositionSelector li:first-child,
+ol.MergeSelector li:first-child
+	{ border-top: none; }
+
+ol.StopSelector li.Highlight,
+ol.WaypointSelector li.Highlight,
+ol.PositionSelector li.Highlight,
+ol.MergeSelector li.Highlight
+	{ background-color: #fff8c6; }
+
+ol.PositionSelector img
+{
+	width: auto;
+	height: 17px;
+
+	margin: 0px;
+	padding: 0px;
+
+	vertical-align: middle;
+}
+
+
+/*
+ * ImageViewer
+ */
+
+div.ImageViewer
+{
+	position: absolute;
+	top: 23px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+	margin: 5px;
+
+	overflow: hidden;
+}
+
+div.ImageViewer img
+{
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 0px;
+	margin-bottom: auto;
+	
+	width: auto;
+	height: auto;
+	max-height: 100%;
+	max-width: 100%;
+}
+
+
+/*
+ * ImageBrowser
+ */
+
+h2.ImageBrowser
+	{ display: none; }
+
+img.ImageBrowser
+{
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	right: 20%;
+	bottom: 0px;
+	margin: auto;
+	
+	width: auto;
+	height: auto;
+	max-height: 100%;
+	max-width: 80%;
+}
+
+ol.ImageBrowser
+{
+	position: absolute;
+	top: 0px;
+	left: 80%;
+	right: 0px;
+	bottom: 0px;
+
+	margin: 0px;
+
+	padding-left: 5px;
+	padding-right: 0px;
+	padding-top: 0px;
+	padding-bottom: 0px;
+
+	overflow: auto;
+}
+
+ol.ImageBrowser img
+{
+	width: 100%;
+	height: auto;
+
+	margin: 0px;
+	padding: 0px;
+
+	vertical-align: bottom;
+
+	cursor: pointer;
+}
+
+ol.ImageBrowser li
+{
+	margin: 0px;
+	margin-top: 3px;
+	padding: 0px;
+	padding: 0px;
+}
+
+ol.ImageBrowser li:first-child
+	{ margin-top: 0px; }
+
+ol.ImageBrowser li.Highlight
+	{ background-color: #fff8c6; }
+
+ol.ImageBrowser li.Highlight img
+	{ opacity: 0.5; }
+
+/*
+ * MergeDialog
+ */
+
+dl.MergeDialog
+{
+	position: absolute;
+	top: 23px;
+	left: 0px;
+	right: 0px;
+	bottom: 35px;
+
+	margin: 0px;
+
+	padding: 10px;
+
+	border-bottom: 1px solid #babdb6;
+
+	overflow: auto;
+
+	font-size: small;
+}
+
+dl.MergeDialog dt
+{
+	display: inline-block;
+	width: auto;
+	min-width: 180px;
+
+	font-weight: bold;
+}
+
+dl.MergeDialog dd
+{
+	display: inline; 
+
+	margin-left: 0px;
+}
+
+dl.MergeDialog dd:after
+	{ content: '\A'; }
+
+/*
+ * StopEditor
+ */
+
+form.StopEditor
+{
+	position: absolute;
+
+	left: 0px;
+	top: 23px;
+	right: 0px;
+	bottom: 35px;
+
+	margin: 0px;
+
+	padding: 10px;
+
+	border-bottom: 1px solid #babdb6;
+
+	overflow: auto;
+
+	font-size: small;
+}
+
+form.StopEditor fieldset
+{
+	margin-bottom: 10px;
+
+	border-top: 1px solid #babdb6;
+	border-left: none;
+	border-right: none;
+	border-bottom: none;
+}
+
+form.StopEditor legend
+{
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
+form.StopEditor label.TextboxLabel
+{
+	display: inline-block;
+	width: 115px;
+
+	margin-left: 0px;
+	margin-top: 0px;
+	margin-bottom: 0px;
+	margin-right: 5px;
+	padding-left: 5px;
+	padding-right: 5px;
+	padding-top: 2px;
+	padding-bottom: 2px;
+}
+
+form.StopEditor label.ComboboxLabel
+{
+	display: inline-block;
+	width: 115px;
+
+	margin-left: 0px;
+	margin-top: 0px;
+	margin-bottom: 0px;
+	margin-right: 5px;
+	padding-left: 5px;
+	padding-right: 5px;
+	padding-top: 2px;
+	padding-bottom: 2px;
+}
+
+form.StopEditor label.CheckboxLabel
+{
+	display: inline-block;
+	width: 220px;
+
+	margin-right: 0px;
+	margin-top: 0px;
+	margin-bottom: 0px;
+	margin-left: 5px;
+	padding-left: 5px;
+	padding-right: 5px;
+	padding-top: 2px;
+	padding-bottom: 2px;
+}
+
+form.StopEditor label.MergeConflict
+	{ background-color: #fcd0d0; }
+
+form.StopEditor label.MergedValue
+	{ background-color: #fff8c6; }
+
+form.StopEditor input[type="checkbox"]
+{ 
+	margin-left: 5px;
+	margin-right: 0px; 
+	border: 1px solid #babdb6;
+}
+
+form.StopEditor input[type="text"]
+{
+	width: 150px;
+
+	margin-top: 5px;
+
+	font-size: small;
+
+	border: 1px solid #babdb6;
+}
+
+form.StopEditor div.ConflictTool
+{
+	border: 1px solid #babdb6;
+
+	padding: 3px;
+
+	background-color: white;
+
+	font-size: x-small;
+}
+
+form.StopEditor button
+{ 
+	padding: 0px;
+
+	height: 22px;
+	width: 22px;
+
+	vertical-align: bottom;
+}
+
+form.StopEditor img
+{
+	margin-top: auto;
+	margin-bottom: auto;
+
+	vertical-align: middle;
+}
+
+/*
+ * MapControl
+ */
+
+#map
+{
+	position: absolute;
+	left: 10px;
+	top: 43px;
+	right: 60%;
+	bottom: 40%;
+
+	border: 1px solid #babdb6;
+}
+
+/* For some reason the slider image has a top offset of 6px which results in 
+ * a displacement of the slider on the zoombar. Setting vertical-align to top 
+ * solves this issue. However it should not be neccessary in the first place!
+ */
+img[src="scripts/img/slider.png"]
+	{ vertical-align: top; }
+
+/*
+ * Panels
+ */
+
+#imagePanel,
+#stopPanel,
+#waypointPanel,
+#mergePanel
+{
+	position: absolute;
+
+	margin: 0px;
+	padding: 0px;
+	border: none;
+}
+
+#imagePanel
+{
+	left: 10px;
+	top: 60%;
+	right: 60%;
+	bottom: 10px;
+
+	margin-top: 10px;
+
+	border-top: 1px solid #babdb6;
+	border-bottom: 1px solid #babdb6;
+}
+
+#stopPanel
+{
+	left: 40%;
+	top: 43px;
+	right: 30%;
+	bottom: 10px;
+
+	margin-left: 20px;
+}
+
+#waypointPanel
+{
+	left: 70%;
+	top: 43px;
+	right: 10px;
+	bottom: 60%;
+
+	margin-left: 20px;
+	margin-bottom: 20px;
+}
+
+#mergePanel
+{
+	left: 70%;
+	top: 40%;
+	right: 10px;
+	bottom: 10px;
+
+	margin-left: 20px;
+}

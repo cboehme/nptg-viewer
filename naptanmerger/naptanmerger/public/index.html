@@ -1,0 +1,479 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+
+<html>
+<head>
+	<title>NOVAM</title>
+
+	<link rel="icon" type="image/png" href="site-icon.png">
+
+	<link rel="stylesheet" href="base.css" type="text/css">
+
+	<script src="scripts/prototype.js" type="text/javascript"></script>
+	<script src="scripts/OpenLayers.js" type="text/javascript"></script>
+	<script src="scripts/OpenStreetMap.js" type="text/javascript"></script>
+	<script src="scripts/NaptanMerger.js" type="text/javascript"></script>
+	<script type="text/javascript">
+		var mapControl = null;
+
+		var currentStop = null;
+		var currentMergeStop = null;
+		var currentPosition = null;
+		var currentImage = null;
+
+		runOnLoad(function (evt) {
+			stopPanel = new NaptanMerger.WidgetContainer('stopPanel');
+			mergePanel = new NaptanMerger.WidgetContainer('mergePanel');
+			imagePanel = new NaptanMerger.WidgetContainer('imagePanel');
+			waypointPanel = new NaptanMerger.WidgetContainer('waypointPanel');
+
+			mapControl = new NaptanMerger.MapControl('map');
+			imageBrowser = new NaptanMerger.ImageBrowser(mapControl);
+			positionChooser = new NaptanMerger.PositionChooser(mapControl);
+			stopSelector = new NaptanMerger.StopSelector(mapControl);
+			mergeSelector = new NaptanMerger.MergeSelector(mapControl);
+			positionSelector = new NaptanMerger.PositionSelector(mapControl);
+			waypointViewer = new NaptanMerger.WaypointViewer();
+			imageViewer = new NaptanMerger.ImageViewer();
+			mergeDialog = new NaptanMerger.MergeDialog();
+			stopViewer = new NaptanMerger.StopViewer();
+			stopEditor = new NaptanMerger.StopEditor();
+
+			mapControl.events.register("stop_click", this, function (evt) {
+				if (evt.feature.attributes.type.startsWith('deleted_'))
+					return;
+
+				if (currentStop && !evt.shiftKey)
+				{
+					// TODO: Check is bus stop is in the merge list!
+					if (currentMergeStop)
+						mapControl.unmarkFeature(currentMergeStop);
+
+					mergeSelector.unhighlightStop(evt.feature);
+					mapControl.unhighlightFeature(evt.feature);
+					mapControl.markFeature(evt.feature);
+
+					mergePanel.embedWidget(mergeDialog);
+					mergeDialog.setStop(evt.feature);
+					currentMergeStop = evt.feature;
+				}
+				else if (!currentStop || evt.shiftKey)
+				{
+					if (currentMergeStop)
+					{
+						mapControl.unmarkFeature(currentMergeStop);
+						currentMergeStop = null;
+					}
+
+					if (currentStop)
+						mapControl.unselectFeature(currentStop);
+
+					waypointPanel.embedWidget(positionChooser);
+					positionChooser.getPositions(new OpenLayers.LonLat(evt.feature.attributes.lon, evt.feature.attributes.lat));
+					if (evt.shiftKey)
+						currentPosition = null;
+					positionChooser.choosePosition(currentPosition);
+
+					mergePanel.embedWidget(mergeSelector);
+					mergeSelector.getStops(evt.feature);
+
+					stopPanel.embedWidget(stopEditor);
+					stopEditor.setStop(evt.feature);
+					if (stopEditor.isEmbedded() && currentPosition)
+						stopEditor.updateStopPosition(currentPosition.attributes.lon, currentPosition.attributes.lat);
+
+					mapControl.activateDragging(evt.feature);
+
+					mapControl.selectFeature(evt.feature);
+					currentStop = evt.feature;
+
+					if (!currentImage)
+					{
+						imagePanel.embedWidget(imageBrowser);
+						imageBrowser.setFeature(evt.feature);
+					}
+				}
+			});
+
+			mapControl.events.register("waypoint_click", this, function (evt) {
+				if (!currentStop)
+				{
+					waypointPanel.embedWidget(waypointViewer);
+					waypointViewer.setWaypoint(evt.feature);
+
+					stopPanel.embedWidget(stopSelector);
+					stopSelector.getStops(new OpenLayers.LonLat(evt.feature.attributes.lon, evt.feature.attributes.lat));
+
+					mapControl.selectFeature(evt.feature);
+					currentPosition = evt.feature;
+				}
+				else
+				{
+					mapControl.unselectFeature(evt.feature);
+					positionChooser.choosePosition(evt.feature);
+				}
+			});
+
+			mapControl.events.register("image_click", this, function (evt) {
+				if (evt.ctrlKey)
+				{
+					if (!currentStop)
+					{
+						waypointPanel.embedWidget(imageViewer);
+						imageViewer.setImage(evt.feature);
+
+						stopPanel.embedWidget(stopSelector);
+						stopSelector.getStops(new OpenLayers.LonLat(evt.feature.attributes.lon, evt.feature.attributes.lat));
+
+						mapControl.selectFeature(evt.feature);
+						currentPosition = evt.feature;
+					}
+					else
+					{
+						mapControl.unselectFeature(evt.feature);
+						positionChooser.choosePosition(evt.feature);
+					}
+				}
+				else
+				{
+					if (currentImage)
+						mapControl.unselectFeature(currentImage);
+
+					imagePanel.embedWidget(imageBrowser);
+					imageBrowser.setImage(evt.feature);
+					mapControl.selectFeature(evt.feature);
+					currentImage = evt.feature;
+
+					if (!currentStop)
+					{
+						waypointPanel.embedWidget(positionSelector);
+						positionSelector.getWaypoints(new OpenLayers.LonLat(evt.feature.attributes.lon, evt.feature.attributes.lat));
+
+						stopPanel.embedWidget(stopSelector);
+						stopSelector.getStops(new OpenLayers.LonLat(evt.feature.attributes.lon, evt.feature.attributes.lat));
+
+						mergePanel.unhingeWidget();
+					}
+				}
+			});
+
+			mapControl.events.register("waypoint_mouseover", this, function(evt) {
+				mapControl.highlightFeature(evt.feature);
+				if (positionChooser.isEmbedded())
+					positionChooser.highlightPosition(evt.feature);
+				else if (positionSelector.isEmbedded())
+					positionSelector.highlightWaypoint(evt.feature);
+			});
+
+			mapControl.events.register("waypoint_mouseout", this, function(evt) {
+				mapControl.unhighlightFeature(evt.feature);
+				if (positionChooser.isEmbedded())
+					positionChooser.unhighlightPosition(evt.feature);
+				else if (positionSelector.isEmbedded())
+					positionSelector.unhighlightWaypoint(evt.feature);
+			});
+
+			mapControl.events.register("stop_mouseover", this, function(evt) {
+				if (!evt.feature.attributes.type.startsWith('deleted_'))
+				{
+					mapControl.highlightFeature(evt.feature);
+					if (stopSelector.isEmbedded())
+						stopSelector.highlightStop(evt.feature);
+					else if (mergeSelector.isEmbedded())
+						mergeSelector.highlightStop(evt.feature);
+				}
+			});
+
+			mapControl.events.register("stop_mouseout", this, function(evt) {
+				if (!evt.feature.attributes.type.startsWith('deleted_'))
+				{
+					mapControl.unhighlightFeature(evt.feature);
+					if (stopSelector.isEmbedded())
+						stopSelector.unhighlightStop(evt.feature);
+					else if (mergeSelector.isEmbedded())
+						mergeSelector.unhighlightStop(evt.feature);
+				}
+			});
+
+			mapControl.events.register("image_mouseover", this, function(evt) {
+				mapControl.highlightFeature(evt.feature);
+				if (imageBrowser.isEmbedded())
+					imageBrowser.highlightImage(evt.feature);
+			});
+
+			mapControl.events.register("image_mouseout", this, function(evt) {
+				mapControl.unhighlightFeature(evt.feature);
+				if (imageBrowser.isEmbedded())
+					imageBrowser.unhighlightImage(evt.feature);
+			});
+		
+			// FIXME: There is a bug in the drag code that calls drag_done when, in fact
+			// the drag should be cancelled:
+			mapControl.events.register("drag_done", this, function(evt) {
+				var newPos = evt.feature.geometry.clone().transform(NaptanMerger.EPSG900913, NaptanMerger.EPSG4326);
+				stopEditor.updateStopPosition(newPos.lon, newPos.lat);
+			});
+
+			/*mapControl.events.register("drag_cancelled", this, function(evt) {
+				var oldPos = new OpenLayers.LonLat(evt.feature.attributes.lon, evt.feature.attributes.lat);
+				evt.feature.geometry = oldPos.transform(NaptanMerger.EPSG4326, NaptanMerger.EPSG900913);
+			});*/
+
+
+			mergeSelector.events.register("click", this, function(evt) {
+				if (currentMergeStop)
+					mapControl.unmarkFeature(currentMergeStop);
+
+				mergeSelector.unhighlightStop(evt.feature);
+				mapControl.unhighlightFeature(evt.feature);
+				mapControl.markFeature(evt.feature);
+
+				mergePanel.embedWidget(mergeDialog);
+				mergeDialog.setStop(evt.feature);
+				currentMergeStop = evt.feature;
+			});
+
+			mergeSelector.events.register("mouseover", this, function(evt) {
+				mapControl.highlightFeature(evt.feature);
+				mergeSelector.highlightStop(evt.feature);
+			});
+
+			mergeSelector.events.register("mouseout", this, function(evt) {
+				mapControl.unhighlightFeature(evt.feature);
+				mergeSelector.unhighlightStop(evt.feature);
+			});
+
+
+			stopSelector.events.register("click", this, function(evt) {
+				if (currentMergeStop)
+				{
+					mapControl.unmarkFeature(currentMergeStop);
+					currentMergeStop = null;
+				}
+
+				if (currentStop)
+					mapControl.unselectFeature(currentStop);
+
+				waypointPanel.embedWidget(positionChooser);
+				positionChooser.getPositions(new OpenLayers.LonLat(evt.feature.attributes.lon, evt.feature.attributes.lat));
+				positionChooser.choosePosition(currentPosition);
+
+				mergePanel.embedWidget(mergeSelector);
+				mergeSelector.getStops(evt.feature);
+
+				stopPanel.embedWidget(stopEditor);
+				stopEditor.setStop(evt.feature);
+				if (stopEditor.isEmbedded() && currentPosition)
+					stopEditor.updateStopPosition(currentPosition.attributes.lon, currentPosition.attributes.lat);
+
+				mapControl.activateDragging(evt.feature);
+
+				mapControl.selectFeature(evt.feature);
+				currentStop = evt.feature;
+			});
+
+			stopSelector.events.register("mouseover", this, function(evt) {
+				mapControl.highlightFeature(evt.feature);
+				stopSelector.highlightStop(evt.feature);
+
+				mergePanel.embedWidget(stopViewer);
+				stopViewer.setStop(evt.feature);
+			});
+
+			stopSelector.events.register("mouseout", this, function(evt) {
+				mapControl.unhighlightFeature(evt.feature);
+				stopSelector.unhighlightStop(evt.feature);
+
+				stopViewer.unhinge();
+			});
+
+
+			positionSelector.events.register("click", this, function(evt) {
+				if (evt.feature.attributes.type == 'waypoint')
+				{
+					waypointPanel.embedWidget(waypointViewer);
+					waypointViewer.setWaypoint(evt.feature);
+				}
+				else if (evt.feature.attributes.type == 'image')
+				{
+					waypointPanel.embedWidget(imageViewer);
+					imageViewer.setImage(evt.feature);
+				}
+
+				stopPanel.embedWidget(stopSelector);
+				stopSelector.getStops(new OpenLayers.LonLat(evt.feature.attributes.lon, evt.feature.attributes.lat));
+
+				currentPosition = evt.feature;
+			});
+
+			positionSelector.events.register("mouseover", this, function(evt) {
+				mapControl.highlightFeature(evt.feature);
+				positionSelector.highlightWaypoint(evt.feature);
+
+				if (evt.feature.attributes.type == 'waypoint')
+				{
+					mergePanel.embedWidget(waypointViewer);
+					waypointViewer.setWaypoint(evt.feature);
+				}
+				else if (evt.feature.attributes.type == 'image')
+				{
+					mergePanel.embedWidget(imageViewer);
+					imageViewer.setImage(evt.feature);
+				}
+			});
+
+			positionSelector.events.register("mouseout", this, function(evt) {
+				mapControl.unhighlightFeature(evt.feature);
+				positionSelector.unhighlightWaypoint(evt.feature);
+
+				if (evt.feature.attributes.type == 'waypoint')
+					waypointViewer.unhinge();
+				else if (evt.feature.attributes.type == 'image')
+					imageViewer.unhinge();
+			});
+
+
+			positionChooser.events.register("change", this, function(evt) {
+				if (currentPosition)
+					mapControl.unmarkFeature(currentPosition);
+				if (evt.feature)
+					mapControl.markFeature(evt.feature);
+				currentPosition = evt.feature;
+
+				if (stopEditor.isEmbedded() && currentPosition)
+					stopEditor.updateStopPosition(currentPosition.attributes.lon, currentPosition.attributes.lat);
+			});
+
+			positionChooser.events.register("mouseover", this, function(evt) {
+				if(evt.feature)
+					mapControl.highlightFeature(evt.feature);
+				positionChooser.highlightPosition(evt.feature);
+			});
+
+			positionChooser.events.register("mouseout", this, function(evt) {
+				if(evt.feature)
+					mapControl.unhighlightFeature(evt.feature);
+				positionChooser.unhighlightPosition(evt.feature);
+			});
+
+
+			mergeDialog.events.register('merge', this, function (evt) {
+				mergeDialog.unhinge();
+
+				stopEditor.mergeStops(currentMergeStop);
+
+				mapControl.unmarkFeature(currentMergeStop);
+				currentMergeStop = null;
+			});
+
+			mergeDialog.events.register('cancelled', this, function (evt) {
+				mergePanel.embedWidget(mergeSelector);
+
+				mapControl.unmarkFeature(currentMergeStop);
+				currentMergeStop = null;
+			});
+
+
+			stopEditor.events.register('saved', this, function (evt) {
+				mapControl.unselectFeature(currentStop);
+				currentStop = null;
+
+				if(currentMergeStop)
+				{
+					mapControl.unmarkFeature(currentMergeStop);
+					currentMergeStop = null;
+				}
+
+				mergePanel.unhingeWidget();
+
+				if(currentImage)
+				{
+					waypointPanel.embedWidget(positionSelector);
+					positionSelector.getWaypoints(new OpenLayers.LonLat(currentImage.attributes.lon, currentImage.attributes.lat));
+
+					stopPanel.embedWidget(stopSelector);
+					stopSelector.getStops(new OpenLayers.LonLat(currentImage.attributes.lon, currentImage.attributes.lat));
+				}
+				else
+				{
+					stopEditor.unhinge();
+					positionChooser.unhinge();
+				}
+			});
+
+			stopEditor.events.register('cancelled', this, function (evt) {
+				mapControl.unselectFeature(currentStop);
+				currentStop = null;
+
+				if(currentMergeStop)
+				{
+					mapControl.unmarkFeature(currentMergeStop);
+					currentMergeStop = null;
+				}
+
+				mergePanel.unhingeWidget();
+
+				if(currentImage)
+				{
+					waypointPanel.embedWidget(positionSelector);
+					positionSelector.getWaypoints(new OpenLayers.LonLat(currentImage.attributes.lon, currentImage.attributes.lat));
+
+					stopPanel.embedWidget(stopSelector);
+					stopSelector.getStops(new OpenLayers.LonLat(currentImage.attributes.lon, currentImage.attributes.lat));
+				}
+				else
+				{
+					stopEditor.unhinge();
+					positionChooser.unhinge();
+				}
+			});
+
+
+			imageBrowser.events.register('click', this, function (evt) {
+				if (currentImage)
+					mapControl.unselectFeature(currentImage);
+
+				imageBrowser.setImage(evt.feature);
+				mapControl.selectFeature(evt.feature);
+				mapControl.unhighlightFeature(evt.feature);
+				currentImage = evt.feature;
+
+				if (!currentStop)
+				{
+					waypointPanel.embedWidget(positionSelector);
+					positionSelector.getWaypoints(new OpenLayers.LonLat(evt.feature.attributes.lon, evt.feature.attributes.lat));
+
+					stopPanel.embedWidget(stopSelector);
+					stopSelector.getStops(new OpenLayers.LonLat(evt.feature.attributes.lon, evt.feature.attributes.lat));
+
+					mergePanel.unhingeWidget();
+				}
+			});
+
+			imageBrowser.events.register('mouseover', this, function (evt) {
+				mapControl.highlightFeature(evt.feature);
+				imageBrowser.highlightImage(evt.feature);
+			});
+
+			imageBrowser.events.register('mouseout', this, function (evt) {
+				mapControl.unhighlightFeature(evt.feature);
+				imageBrowser.unhighlightImage(evt.feature);
+			});
+		});
+	</script>
+</head>
+
+<body>
+	<h1>NOVAM</h1>
+	<ul id="tools_menu">
+		<li><a href="waypoints/import_form">Upload Waypoints</a></li>
+		<li><a href="images/import_form">Upload Images</a></li>
+		<li><a href="">Download GPX</a></li>
+		<li><a href="">Help</a></li>
+	</ul>
+	<div id="map"></div>
+	<div id="imagePanel"></div>
+	<div id="waypointPanel"></div>
+	<div id="stopPanel"></div>
+	<div id="mergePanel"></div>
+</body>
+</html>

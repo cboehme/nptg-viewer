@@ -1,0 +1,2 @@
+recursive-include naptanmerger/public *
+recursive-include naptanmerger/templates *
