@@ -33,5 +33,9 @@ setup(
 
     [paste.app_install]
     main = pylons.util:PylonsInstaller
+
+	[paste.paster_command]
+	load-planet = naptanmerger.commands.load_planet:LoadPlanet
+	planet-update = naptanmerger.commands.planet_update:PlanetUpdate
     """,
 )
