@@ -3,9 +3,10 @@ CREATE TABLE Stops (
 	lat DECIMAL(10,7) NOT NULL,
 	lon DECIMAL(10,7) NOT NULL,
 	osm_id BIGINT UNSIGNED,
-	action ENUM('none', 'update', 'delete') NOT NULL DEFAULT 'none',
+	osm_version BIGINT UNSIGNED,
 	PRIMARY KEY (id),
 	INDEX (lat, lon),
+	INDEX (osm_id, osm_version),
 	UNIQUE (osm_id)
 	)
 ENGINE=InnoDB;

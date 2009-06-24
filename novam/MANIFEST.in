@@ -1,0 +1,3 @@
+include novam/config/deployment.ini_tmpl
+recursive-include novam/public *
+recursive-include novam/templates *

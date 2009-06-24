@@ -3,6 +3,7 @@ import logging
 from pylons.decorators import jsonify
 import sqlalchemy.sql.expression as sql
 from xml.sax import parse, SAXException
+
 from naptanmerger.lib.base import *
 from naptanmerger.lib.OSMImporter import OSMImporter
 from naptanmerger import model
@@ -22,8 +23,7 @@ class OsmdataController(BaseController):
 			bbox = bbox_str.split(",")
 			stops_query = stops_query.filter(sql.and_(
 				model.Stop.lat.between(bbox[1], bbox[3]),
-				model.Stop.lon.between(bbox[0], bbox[2]),
-				model.Stop.action != u"delete"
+				model.Stop.lon.between(bbox[0], bbox[2])
 			))
 
 		if "stop" in request.GET:
@@ -43,8 +43,7 @@ class OsmdataController(BaseController):
 					),
 					sql.not_(model.Stop.id.in_(
 						sql.select([model.tags.c.stop_id]).where(model.tags.c.name==u"naptan:AtcoCode")
-					)),
-					model.Stop.action != u"delete"
+					))
 				))
 				if "local_ref" in stop.tags:	
 					stops_query = stops_query.order_by(
@@ -78,8 +77,7 @@ class OsmdataController(BaseController):
 					)),
 					model.Stop.id.in_(
 						sql.select([model.tags.c.stop_id]).where(model.tags.c.name==u"naptan:AtcoCode")
-					),
-					model.Stop.action != u"delete"
+					)
 				))
 				if "name" in stop.tags:	
 					stops_query = stops_query.order_by(
@@ -107,12 +105,11 @@ class OsmdataController(BaseController):
 		if "loc" in request.GET:
 			loc_str = request.GET.get("loc")
 			loc = [ float(l.strip()) for l in loc_str.split(",") ]
-			stops_query = stops_query.filter(sql.and_(
+			stops_query = stops_query.filter(
 				sql.func.sqrt(sql.func.pow(model.Stop.lat-loc[1], 2)
 				+sql.func.pow(model.Stop.lon-loc[0], 2)
-				) < 0.005,
-				model.Stop.action != u"delete"
-			)).order_by(sql.func.sqrt(sql.func.pow(model.Stop.lat-loc[1], 2)
+				) < 0.005
+			).order_by(sql.func.sqrt(sql.func.pow(model.Stop.lat-loc[1], 2)
 				+sql.func.pow(model.Stop.lon-loc[0], 2)
 				)).limit(10)
 
@@ -126,7 +123,7 @@ class OsmdataController(BaseController):
 				"lat": float(stop.lat),
 				"lon": float(stop.lon),
 				"osm_id": stop.osm_id,
-				"action": stop.action,
+				"osm_version": stop.osm_version,
 				"tags": tags_struct
 			})
 
@@ -141,7 +138,7 @@ class OsmdataController(BaseController):
 			"lat": float(stop.lat),
 			"lon": float(stop.lon),
 			"osm_id": stop.osm_id,
-			"action": stop.action,
+			"osm_version": stop.osm_version,
 			"tags": {}
 		}
 		for tag in stop.tags:

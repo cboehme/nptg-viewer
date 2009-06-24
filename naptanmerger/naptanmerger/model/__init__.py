@@ -10,10 +10,11 @@ from naptanmerger.model import meta
 
 
 class Stop(object):
-	def __init__(self, lat, lon, osm_id=None):
-		self.lat = lat
-		self.lon = lon
-		self.osm_id = osm_id
+	def __init__(self, lat, lon, osm_id=None, osm_version=None):
+			self.lat = lat
+			self.lon = lon
+			self.osm_id = osm_id
+			self.osm_version = osm_version
 
 	def __repr__(self):
 		return "Stop(id=%s, lat=%s, lon=%s, osm_id=%s)" % (self.id, self.lat, self.lon, self.osm_id)
@@ -61,7 +62,7 @@ def init_model(engine, image_store):
 
 	meta.engine = engine
 
-	session = orm.sessionmaker(bind=meta.engine, autoflush=True, transactional=True)
+	session = orm.sessionmaker(bind=meta.engine)
 	meta.session = orm.scoped_session(session)
 
 	meta.image_store = image_store

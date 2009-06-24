@@ -12,7 +12,7 @@ setup(
     #author='',
     #author_email='',
     #url='',
-    install_requires=["Pylons>=0.9.6.2"],
+    install_requires=["Pylons>=0.9.7"],
     packages=find_packages(exclude=['ez_setup']),
     include_package_data=True,
     test_suite='nose.collector',
@@ -27,5 +27,9 @@ setup(
 
     [paste.app_install]
     main = pylons.util:PylonsInstaller
+
+	[paste.paster_command]
+	load-planet = naptanmerger.commands.load_planet:LoadPlanet
+	planet-update = naptanmerger.commands.planet_update:PlanetUpdate
     """,
 )
