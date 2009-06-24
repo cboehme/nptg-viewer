@@ -2,7 +2,7 @@
 import os
 from uuid import uuid4
 
-from sqlalchemy import sa
+import sqlalchemy as sa
 from sqlalchemy import orm
 from sqlalchemy.orm.collections import column_mapped_collection
 
@@ -10,12 +10,12 @@ from novam.model import meta
 
 
 def init_model(engine, image_store):
-    """Call me before using any of the tables or classes in the model"""
-    ## Reflected tables must be defined and mapped here
-    #global reflected_table
-    #reflected_table = sa.Table("Reflected", meta.metadata, autoload=True,
-    #                           autoload_with=engine)
-    #orm.mapper(Reflected, reflected_table)
+	"""Call me before using any of the tables or classes in the model"""
+	## Reflected tables must be defined and mapped here
+	#global reflected_table
+	#reflected_table = sa.Table("Reflected", meta.metadata, autoload=True,
+	#							autoload_with=engine)
+	#orm.mapper(Reflected, reflected_table)
 
 	global stops, tags, waypoints
 
@@ -26,26 +26,26 @@ def init_model(engine, image_store):
 	
 	orm.mapper(Stop, stops, properties={
 		"tags": orm.relation(Tag, collection_class=column_mapped_collection(tags.c.name), \
-		        lazy=False, passive_deletes=True)
+				lazy=False, passive_deletes=True)
 	})
 	orm.mapper(Tag, tags)
 	orm.mapper(Waypoint, waypoints)
 	orm.mapper(Image, images)
 
-    meta.Session.configure(bind=engine)
-    meta.engine = engine
+	meta.session.configure(bind=engine)
+	meta.engine = engine
 
 	meta.image_store = image_store
 
 
 ## Non-reflected tables may be defined and mapped at module level
 #foo_table = sa.Table("Foo", meta.metadata,
-#    sa.Column("id", sa.types.Integer, primary_key=True),
-#    sa.Column("bar", sa.types.String(255), nullable=False),
-#    )
+#	 sa.Column("id", sa.types.Integer, primary_key=True),
+#	 sa.Column("bar", sa.types.String(255), nullable=False),
+#	 )
 #
 #class Foo(object):
-#    pass
+#	 pass
 #
 #orm.mapper(Foo, foo_table)
 
@@ -55,7 +55,7 @@ def init_model(engine, image_store):
 #reflected_table = None
 #
 #class Reflected(object):
-#    pass
+#	 pass
 
 stops = None
 
