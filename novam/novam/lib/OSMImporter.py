@@ -101,11 +101,16 @@ class OSMUpdater(ContentHandler):
 				self.stop_deleted = True
 
 			if self.mode == MODE_MODIFY:
-				session.begin_nested()
-				session.execute(model.stops.delete().where(
-					model.stops.c.osm_id == attrs.getValue("id"))
+				node = session.query(model.Stop).filter(sql.and_(
+					model.stops.c.osm_id == attrs.getValue("id"),
+					model.stops.c.osm_version < attrs.getValue("version")
+					)).first()
+				if node:
+					session.begin_nested()
+					session.execute(model.stops.delete().where(
+						model.stops.c.osm_id == attrs.getValue("id"))
 					)
-				self.stop_deleted = True
+					self.stop_deleted = True
 
 			if self.mode in (MODE_CREATE, MODE_MODIFY):
 				lon, lat = float(attrs.getValue("lon")), float(attrs.getValue("lat"))

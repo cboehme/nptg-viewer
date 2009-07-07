@@ -227,6 +227,35 @@ class TestUpdatePlanetCommand(TestCase):
 			(4, "highway", "bus_stop"),
 			(4, "naptan:AtcoCode", "54321")
 		])
+
+	def test_modify_stop_old_version(self):
+		"""Test that an old version does not overwrite a new one"""
+
+		self.env.writefile("test_modify_stop_old_version.osm", \
+			"""<?xml version='1.0' encoding='UTF-8'?>
+			   <osmChange version="0.6" generator="osmosis">
+			     <modify>
+				   <node id="102" version="2" timestamp="" lat="51.2" lon="0.5">
+				     <tag k="highway" v="bus_stop"/>
+				     <tag k="naptan:AtcoCode" v="54321"/>
+				   </node>
+			     </modify>
+		      </osmChange>
+			""")
+		self.env.run("paster", "update-planet", "test_modify_stop_old_version.osm", config['__file__'])
+
+		# FIXME: The order of the inserts does not actually matter. So we should not
+		# check the value of the id field:
+		assert table_contents(model.stops, [
+			(1, Decimal("52.3"), Decimal("-1.9"), 101, 2),
+			(2, Decimal("51.3"), Decimal("0.4"), 102, 3),
+			(3, Decimal("53.2"), Decimal("0.1"), 103, 1)
+		])
+		assert table_contents(model.tags, [
+			(1, "highway", "bus_stop"),
+			(2, "highway", "bus_stop"),
+			(3, "naptan:AtcoCode", "12345")
+		])
 	
 	def test_modify_stop_tags_removed(self):
 		"""Verify that a stop will be removed if it does not contain bus stops tags anymore"""
