@@ -7,7 +7,7 @@ from xml.sax import parse, SAXException
 
 from novam.config.environment import load_environment
 
-class PlanetUpdate(Command):
+class UpdatePlanetCommand(Command):
 	# Parser configuration
 	summary = "Update bus stops and naptan nodes from a osmosis changeset"
 	description = """
@@ -16,21 +16,20 @@ class PlanetUpdate(Command):
 	group_name = "novam"
 	parser = Command.standard_parser(verbose=False)
 	min_args = 1
-	max_args = 1
+	max_args = 2
+	takes_config_file = -1
 
 	def command(self):
-		#TODO: Add support for specifing config files
-		#if len(self.args) == 0:
-		#	# Assume the .ini file is ./development.ini
-		#	config_file = "development.ini"
-		#	if not os.path.isfile(config_file):
-		#		raise BadCommand("%sError: CONFIG_FILE not found at: .%s%s\n"
-		#		                 "Please specify a CONFIG_FILE" % \
-		#		                 (self.parser.get_usage(), os.path.sep,
-		#		                 config_file))
-		#	else:
-		#		config_file = self.args[0]
-		config_file = "development.ini"
+		if len(self.args) == 1:
+			# Assume the .ini file is ./development.ini
+			config_file = "development.ini"
+			if not os.path.isfile(config_file):
+				raise BadCommand("%sError: CONFIG_FILE not found at: .%s%s\n"
+				                 "Please specify a CONFIG_FILE" % \
+				                 (self.parser.get_usage(), os.path.sep,
+				                 config_file))
+		else:
+			config_file = self.args[1]
 
 		config_name = "config:%s" % config_file
 		here_dir = os.getcwd()

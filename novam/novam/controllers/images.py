@@ -63,22 +63,23 @@ class ImagesController(BaseController):
 		return data
 
 	def importdata(self):
-		upload = request.params["image"]
-		image = model.Image()
-		fh = open(image.file_path, "wb")
-		shutil.copyfileobj(upload.file, fh)
-		upload.file.close()
-		fh.close()
+		#upload = request.params["image"]
+		#image = model.Image()
+		#fh = open(image.file_path, "wb")
+		#shutil.copyfileobj(upload.file, fh)
+		#upload.file.close()
+		#fh.close()
 
-		pos = EXIFHelper.get_gps_info(image.file_path)
-		if not pos:
-			return "Error"
-		image.lat = pos[1]
-		image.lon = pos[0]
+		#pos = EXIFHelper.get_gps_info(image.file_path)
+		#if not pos:
+		#	return "Error"
+		#image.lat = pos[1]
+		#image.lon = pos[0]
 
-		session.add(image)
-		session.commit()
-		return "OK"
+		#session.add(image)
+		#session.commit()
+		#return "OK"
+		pass
 
 	def import_form(self):
 		return render("/images/import_form.mako")

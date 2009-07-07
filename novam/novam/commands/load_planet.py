@@ -7,7 +7,7 @@ from xml.sax import parse, SAXException
 
 from novam.config.environment import load_environment
 
-class LoadPlanet(Command):
+class LoadPlanetCommand(Command):
 	# Parser configuration
 	summary = "Import bus stops and naptan nodes from a planet.osm file"
 	description = """Warning: This operation replaces all bus stops which are 
@@ -17,21 +17,20 @@ class LoadPlanet(Command):
 	group_name = "novam"
 	parser = Command.standard_parser(verbose=False)
 	min_args = 1
-	max_args = 1
+	max_args = 2
+	takes_config_file = -1
 
 	def command(self):
-		#TODO: Add support for specifing config files
-		#if len(self.args) == 0:
-		#	# Assume the .ini file is ./development.ini
-		#	config_file = "development.ini"
-		#	if not os.path.isfile(config_file):
-		#		raise BadCommand("%sError: CONFIG_FILE not found at: .%s%s\n"
-		#		                 "Please specify a CONFIG_FILE" % \
-		#		                 (self.parser.get_usage(), os.path.sep,
-		#		                 config_file))
-		#	else:
-		#		config_file = self.args[0]
-		config_file = "development.ini"
+		if len(self.args) == 1:
+			# Assume the .ini file is ./development.ini
+			config_file = "development.ini"
+			if not os.path.isfile(config_file):
+				raise BadCommand("%sError: CONFIG_FILE not found at: .%s%s\n"
+				                 "Please specify a CONFIG_FILE" % \
+				                 (self.parser.get_usage(), os.path.sep,
+				                 config_file))
+		else:
+			config_file = self.args[1]
 
 		config_name = "config:%s" % config_file
 		here_dir = os.getcwd()
@@ -43,12 +42,7 @@ class LoadPlanet(Command):
 		conf = appconfig(config_name, relative_to=here_dir)
 		load_environment(conf.global_conf, conf.local_conf)
 
-		from novam import model
-		from novam.model.meta import session
 		from novam.lib.OSMImporter import OSMImporter
 		
-		session.execute(model.stops.delete())
-		session.commit();
-
 		planet_osm = self.args[0]
 		parse(planet_osm, OSMImporter())

@@ -4,10 +4,10 @@
 # The %(here)s variable will be replaced with the parent directory of this file
 #
 [DEFAULT]
-debug = true
-email_to = you@yourdomain.com
+debug = false
+email_to = novam@mappa-mercia.org
 smtp_server = localhost
-error_email_from = paste@localhost
+error_email_from = novam@mappa-mercia.org
 
 [server:main]
 use = egg:Paste#http
@@ -31,7 +31,10 @@ app_instance_uuid = ${app_instance_uuid}
 #beaker.session.data_dir = %(here)s/data/sessions
 
 # SQLAlchemy database URL
-sqlalchemy.url = sqlite:///production.db
+sqlalchemy.url = mysql://
+
+# Image store directory
+image_store = %(here)s/image_store
 
 # WARNING: *THE LINE BELOW MUST BE UNCOMMENTED ON A PRODUCTION ENVIRONMENT*
 # Debug mode will enable the interactive debugging tool, allowing ANYONE to

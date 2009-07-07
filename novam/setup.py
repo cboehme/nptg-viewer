@@ -35,7 +35,7 @@ setup(
     main = pylons.util:PylonsInstaller
 
 	[paste.paster_command]
-	load-planet = naptanmerger.commands.load_planet:LoadPlanet
-	planet-update = naptanmerger.commands.planet_update:PlanetUpdate
+	load-planet = novam.commands.load_planet:LoadPlanetCommand
+	update-planet = novam.commands.update_planet:UpdatePlanetCommand
     """,
 )

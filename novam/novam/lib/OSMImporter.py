@@ -1,8 +1,12 @@
 from xml.sax.handler import ContentHandler
+import sqlalchemy.sql.expression as sql
+import logging
 
 from novam import model
 from novam.model.meta import session
 from novam.lib.point_in_polygon import point_in_polygon
+
+log = logging.getLogger(__name__)
 
 class OSMImporter(ContentHandler):
 	def __init__(self):
@@ -10,9 +14,14 @@ class OSMImporter(ContentHandler):
 		self.is_bus_stop = False
 
 	def startElement(self, name, attrs):
-		if name == "node":
+		
+		if name == "osm":
+			session.execute(model.stops.delete())
+
+		elif name == "node":
 			self.current_stop = model.Stop(attrs.getValue("lat"), attrs.getValue("lon"), \
 				attrs.getValue("id"), attrs.getValue("version"))
+			session.begin_nested()
 			session.add(self.current_stop)
 			self.is_bus_stop = False
 
@@ -22,6 +31,9 @@ class OSMImporter(ContentHandler):
 			self.is_bus_stop = self.is_bus_stop or (key == "naptan:AtcoCode" or (key == "highway" and val == "bus_stop"))
 
 	def endElement(self, name):
+		if name == "osm":
+			session.commit()
+
 		if name == "node":
 			if self.is_bus_stop:
 				session.commit()
@@ -79,38 +91,32 @@ class OSMUpdater(ContentHandler):
 		elif name == "delete":
 			self.mode = MODE_DELETE
 
-		elif name == "node":
-			if self.mode == MODE_CREATE:
+		elif name == "node":	
+			if self.mode == MODE_DELETE:
+				session.begin_nested()
+				session.execute(model.stops.delete().where(sql.and_(
+					model.stops.c.osm_id == attrs.getValue("id"),
+					model.stops.c.osm_version == attrs.getValue("version")
+					)))
+				self.stop_deleted = True
+
+			if self.mode == MODE_MODIFY:
+				session.begin_nested()
+				session.execute(model.stops.delete().where(
+					model.stops.c.osm_id == attrs.getValue("id"))
+					)
+				self.stop_deleted = True
+
+			if self.mode in (MODE_CREATE, MODE_MODIFY):
 				lon, lat = float(attrs.getValue("lon")), float(attrs.getValue("lat"))
 				if point_in_polygon(lon, lat, self.area):
-					if session.query(model.Stop).filter_by(osm_id=attrs.getValue("id")).count() == 0:
+					node = session.query(model.Stop).filter_by(osm_id=attrs.getValue("id")).first()
+					if not node:
 						self.current_stop = model.Stop(attrs.getValue("lat"), attrs.getValue("lon"), \
 							attrs.getValue("id"), attrs.getValue("version"))
+						session.begin_nested()
 						session.add(self.current_stop)
 						self.is_bus_stop = False
-
-			elif self.mode == MODE_MODIFY:
-				lon, lat = float(attrs.getValue("lon")), float(attrs.getValue("lat"))
-				print lon, lat
-				if point_in_polygon(lon, lat, self.area):
-					self.current_stop = session.query(model.Stop).filter_by(osm_id=attrs.getValue("id")).first()
-					if self.current_stop:
-						if self.current_stop.osm_version >= attrs.getValue("version"):
-							self.current_stop = None  # Ignore the update. Our version is already newer
-					else:
-						# Node does not exist in the database yet. It has probably been moved 
-						# from somewhere into the area or its tags have been changed:
-						self.current_stop = model.Stop(attrs.getValue("lat"), attrs.getValue("lon"), \
-						attrs.getValue("id"), attrs.getValue("version"))
-						session.add(self.current_stop)
-					self.is_bus_stop = False
-				else:
-					session.execute(model.stops.delete().where(model.stops.c.osm_id==attrs.getValue("id")))
-					self.stop_deleted = True
-				
-			elif self.mode == MODE_DELETE:
-				session.execute(model.stops.delete().where(model.stops.c.osm_id==attrs.getValue("id")))
-				self.stop_deleted = True
 
 		elif self.current_stop and name == "tag":
 			key, val = attrs.getValue("k"), attrs.getValue("v")
@@ -118,11 +124,9 @@ class OSMUpdater(ContentHandler):
 			self.is_bus_stop = self.is_bus_stop or (key == "naptan:AtcoCode" or (key == "highway" and val == "bus_stop"))
 
 	def endElement(self, name):
-		if name == "create":
-			self.mode = MODE_NONE
-		elif name == "modify":
-			self.mode = MODE_NONE
-		elif name == "delete":
+		if name == "osmChange":
+			session.commit()
+		elif name in ("create", "modify", "delete"):
 			self.mode = MODE_NONE
 		elif name == "node":
 			if self.current_stop:

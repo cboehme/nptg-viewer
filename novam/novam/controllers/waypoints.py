@@ -50,14 +50,15 @@ class WaypointsController(BaseController):
 		return waypoints_struct
 
 	def importdata(self):
-		try:
-			# Add a content-type based decision where to import the
-			# data from:
-			parse(request.params["gpxdata"].file, GPXImporter())
-			#parse(request.body, GPXImporter())
-			return "OK"
-		except SAXException, e:
-			return "Failed: %s" % e.getMessage()
+		#try:
+		#	# Add a content-type based decision where to import the
+		#	# data from:
+		#	parse(request.params["gpxdata"].file, GPXImporter())
+		#	#parse(request.body, GPXImporter())
+		#	return "OK"
+		#except SAXException, e:
+		#	return "Failed: %s" % e.getMessage()
+		pass
 
 	def import_form(self):
 		return render("/waypoints/import_form.mako")

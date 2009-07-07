@@ -149,9 +149,10 @@ class OsmdataController(BaseController):
 		return stop_struct
 
 	def importdata(self):
-		try:
-			# We deactivate this until authentication is working
-			parse(request.body, OSMImporter())
-			return "OK"
-		except SAXException, e:
-			return "Failed: %s" % e.getMessage()
+	#	try:
+	#		# We deactivate this until authentication is working
+	#		parse(request.body, OSMImporter())
+	#		return "OK"
+	#	except SAXException, e:
+	#		return "Failed: %s" % e.getMessage()
+		pass
