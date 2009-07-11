@@ -16,3 +16,6 @@ metadata = MetaData()
 
 # Directory where uploaded images are stored.  Updated by model.init_model().
 image_store = None
+
+# File containing the timestamp of the last planet import/update.  Updated by model.init_model().
+planet_timestamp = None

@@ -44,7 +44,7 @@ def table_contents(table, contents):
 	connection.close()
 	rows = result.fetchall()
 	for row in rows[:]:
-		print row
+		#print row
 		if row in contents:
 			contents.remove(row)
 			rows.remove(row)

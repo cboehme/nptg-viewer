@@ -1,4 +1,4 @@
-from novam.lib.point_in_polygon import point_in_polygon
+from novam.lib.geometry_utils import point_in_polygon
 
 def test_point_inside_triangle():
 	poly = [(-10, -5), (40, 50), (100, -10)]

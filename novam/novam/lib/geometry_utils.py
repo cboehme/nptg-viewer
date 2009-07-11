@@ -1,4 +1,9 @@
+"""Utilities for geometry handling
+"""
+
 def point_in_polygon(x, y, polygon):
+	"""Test if (x,y) is within polygon
+	"""
 
 	n = len(polygon)
 	inside = False

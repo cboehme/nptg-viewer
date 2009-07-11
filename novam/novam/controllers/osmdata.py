@@ -7,7 +7,6 @@ import sqlalchemy.sql.expression as sql
 from xml.sax import parse, SAXException
 
 from novam.lib.base import BaseController, render
-from novam.lib.OSMImporter import OSMImporter
 from novam import model
 from novam.model.meta import session
 
@@ -147,12 +146,3 @@ class OsmdataController(BaseController):
 			stop_struct["tags"][tag] = stop.tags[tag].value
 	
 		return stop_struct
-
-	def importdata(self):
-	#	try:
-	#		# We deactivate this until authentication is working
-	#		parse(request.body, OSMImporter())
-	#		return "OK"
-	#	except SAXException, e:
-	#		return "Failed: %s" % e.getMessage()
-		pass

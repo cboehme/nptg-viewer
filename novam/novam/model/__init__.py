@@ -1,6 +1,7 @@
 """The application's model objects"""
 import os
 from uuid import uuid4
+from datetime import datetime
 
 import sqlalchemy as sa
 from sqlalchemy import orm
@@ -9,7 +10,7 @@ from sqlalchemy.orm.collections import column_mapped_collection
 from novam.model import meta
 
 
-def init_model(engine, image_store):
+def init_model(engine, image_store, planet_timestamp_file):
 	"""Call me before using any of the tables or classes in the model"""
 	## Reflected tables must be defined and mapped here
 	#global reflected_table
@@ -37,6 +38,9 @@ def init_model(engine, image_store):
 
 	meta.image_store = image_store
 
+	meta.planet_timestamp = planet_timestamp_file
+	global planet_timestamp
+	planet_timestamp = _TimestampFile(meta.planet_timestamp)
 
 ## Non-reflected tables may be defined and mapped at module level
 #foo_table = sa.Table("Foo", meta.metadata,
@@ -107,3 +111,24 @@ class Image(object):
 
 	def __repr__(self):
 		return "Image(id=%s, lat=%s, lon=%s, file_id=%s)" % (self.id, self.lat, self.lon, self.file_id)
+
+
+# Access planet timestamp
+class _TimestampFile:
+
+	FORMAT = "%Y-%m-%dT%H:%M:%SZ"
+
+	def __init__(self, file):
+		self.__file = file
+	
+	def get(self):
+		fh = open(self.__file, "rb")
+		ts = datetime.strptime(fh.read(20), self.FORMAT)
+		fh.close()
+		return ts
+
+	def set(self, timestamp):
+		fh = open(self.__file, "wb")
+		fh.write(timestamp.strftime(self.FORMAT))
+		fh.close()
+

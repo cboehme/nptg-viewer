@@ -1,11 +1,12 @@
 import os
+from datetime import datetime
 from paste.script.command import Command
 from paste.deploy import appconfig
 from pylons import config
 
-from xml.sax import parse, SAXException
-
 from novam.config.environment import load_environment
+
+__all__ = ['UpdatePlanetCommand']
 
 class UpdatePlanetCommand(Command):
 	# Parser configuration
@@ -15,12 +16,11 @@ class UpdatePlanetCommand(Command):
 	usage = "osmosis-changeset.osc"
 	group_name = "novam"
 	parser = Command.standard_parser(verbose=False)
-	min_args = 1
-	max_args = 2
-	takes_config_file = -1
+	min_args = 2
+	max_args = 3
 
 	def command(self):
-		if len(self.args) == 1:
+		if len(self.args) == 2:
 			# Assume the .ini file is ./development.ini
 			config_file = "development.ini"
 			if not os.path.isfile(config_file):
@@ -29,7 +29,7 @@ class UpdatePlanetCommand(Command):
 				                 (self.parser.get_usage(), os.path.sep,
 				                 config_file))
 		else:
-			config_file = self.args[1]
+			config_file = self.args[2]
 
 		config_name = "config:%s" % config_file
 		here_dir = os.getcwd()
@@ -41,9 +41,7 @@ class UpdatePlanetCommand(Command):
 		conf = appconfig(config_name, relative_to=here_dir)
 		load_environment(conf.global_conf, conf.local_conf)
 
-		from novam import model
-		from novam.model.meta import session
-		from novam.lib.OSMImporter import OSMUpdater
+		import novam.lib.planet_osm as planet
+		from novam.model import planet_timestamp
 		
-		planet_osc = self.args[0]
-		parse(planet_osc, OSMUpdater())
+		planet.load(self.args[0], datetime.strptime(self.args[1], planet_timestamp.FORMAT), planet.Updater())

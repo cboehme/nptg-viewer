@@ -36,6 +36,9 @@ sqlalchemy.url = mysql://
 # Image store directory
 image_store = %(here)s/image_store
 
+# File containing the planet timestamp:
+planet_timestamp = %(here)s/planet_timestamp.txt
+
 # WARNING: *THE LINE BELOW MUST BE UNCOMMENTED ON A PRODUCTION ENVIRONMENT*
 # Debug mode will enable the interactive debugging tool, allowing ANYONE to
 # execute malicious code after an exception is raised.
