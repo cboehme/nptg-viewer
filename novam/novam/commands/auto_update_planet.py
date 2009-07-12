@@ -82,9 +82,9 @@ class AutoUpdatePlanetCommand(Command):
 			file_to = end_time.strftime(TIME_FORMAT[diff_granularity])
 			filename = "%s-%s.osc.gz" % (file_from, file_to)
 
-			print "Loading diff", diff_granularity, urljoin(self.server), diff_granularity + "/" + filename), "...",
+			print "Loading diff", diff_granularity, urljoin(self.server, diff_granularity + "/" + filename), "...",
 			try:
-				planet.load(urljoin(self.server), diff_granularity + "/" + filename), end_time, planet.Updater())
+				planet.load(urljoin(self.server, diff_granularity + "/" + filename), end_time, planet.Updater())
 			except:
 				print "failed"
 				return start_time
