@@ -13,7 +13,7 @@ class UpdatePlanetCommand(Command):
 	summary = "Update bus stops and naptan nodes from a osmosis changeset"
 	description = """
 	"""
-	usage = "osmosis-changeset.osc"
+	usage = "osmosis-changeset.osc timestamp [config-file]"
 	group_name = "novam"
 	parser = Command.standard_parser(verbose=False)
 	min_args = 2

@@ -14,7 +14,7 @@ class LoadPlanetCommand(Command):
 	description = """Warning: This operation replaces all bus stops which are 
 	currently stored in the database!
 	"""
-	usage = "file:planet.osm|http://www.example.org/planet.osm.gz"
+	usage = "file:planet.osm|http://www.example.org/planet.osm.bz2 timestamp [config-file]"
 	group_name = "novam"
 	parser = Command.standard_parser(verbose=False)
 	min_args = 2

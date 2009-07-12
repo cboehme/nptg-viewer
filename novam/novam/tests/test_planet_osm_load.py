@@ -38,7 +38,7 @@ def teardown_function():
 def test_uncompressed_import():
 	"""Load a local uncompressed file"""
 
-	env = TestFileEnvironment("./test-output")
+	env = TestFileEnvironment("./test_output")
 	env.writefile("test_uncompressed_import.osm", \
 	"""<?xml version='1.0' encoding='UTF-8'?>
 	   <osm version='0.6' generator='JOSM'>
@@ -55,7 +55,7 @@ def test_uncompressed_import():
 	   </osm>
 	""")
 	
-	planet.load("file:./test-output/test_uncompressed_import.osm", _new_timestamp, planet.Importer())
+	planet.load("file:./test_output/test_uncompressed_import.osm", _new_timestamp, planet.Importer())
 	meta.session.commit()
 	
 	# FIXME: The order of the inserts does not actually matter. So we should not
@@ -75,7 +75,7 @@ def test_uncompressed_import():
 def test_gzip_import():
 	"""Load a local gzip file"""
 
-	env = TestFileEnvironment("./test-output")
+	env = TestFileEnvironment("./test_output")
 	env.writefile("test_gzip_import.osm", \
 	"""<?xml version='1.0' encoding='UTF-8'?>
 	   <osm version='0.6' generator='JOSM'>
@@ -93,7 +93,7 @@ def test_gzip_import():
 	""")
 	env.run("gzip", "test_gzip_import.osm")
 
-	planet.load("file:./test-output/test_gzip_import.osm.gz", _new_timestamp, planet.Importer())
+	planet.load("file:./test_output/test_gzip_import.osm.gz", _new_timestamp, planet.Importer())
 	meta.session.commit()
 	
 	# FIXME: The order of the inserts does not actually matter. So we should not
@@ -113,7 +113,7 @@ def test_gzip_import():
 def test_bzip2_import():
 	"""Load a local bzip2 file"""
 
-	env = TestFileEnvironment("./test-output")
+	env = TestFileEnvironment("./test_output")
 	env.writefile("test_bzip2_import.osm", \
 	"""<?xml version='1.0' encoding='UTF-8'?>
 	   <osm version='0.6' generator='JOSM'>
@@ -131,7 +131,7 @@ def test_bzip2_import():
 	""")
 	env.run("bzip2", "test_bzip2_import.osm")
 
-	planet.load("file:./test-output/test_bzip2_import.osm.bz2", _new_timestamp, planet.Importer())
+	planet.load("file:./test_output/test_bzip2_import.osm.bz2", _new_timestamp, planet.Importer())
 	meta.session.commit()
 	
 	# FIXME: The order of the inserts does not actually matter. So we should not
@@ -153,7 +153,7 @@ def test_non_existing_file():
 
 	exception = False
 	try:
-		planet.load("file:./test-output/test_non_existing_file.osm", _new_timestamp, planet.Importer())
+		planet.load("file:./test_output/test_non_existing_file.osm", _new_timestamp, planet.Importer())
 	except:
 		exception = True
 	meta.session.commit()
@@ -167,7 +167,7 @@ def test_non_existing_file():
 def test_broken_gzip_import():
 	"""Load a broken local gzip file"""
 
-	env = TestFileEnvironment("./test-output")
+	env = TestFileEnvironment("./test_output")
 	env.writefile("test_broken_gzip_import.osm", \
 	"""<?xml version='1.0' encoding='UTF-8'?>
 	   <osm version='0.6' generator='JOSM'>
@@ -186,7 +186,7 @@ def test_broken_gzip_import():
 
 	exception = False
 	try:
-		planet.load("file:./test-output/test_broken_gzip_import.osm.gz", _new_timestamp, planet.Importer())
+		planet.load("file:./test_output/test_broken_gzip_import.osm.gz", _new_timestamp, planet.Importer())
 	except:
 		exception = True
 	meta.session.commit()

@@ -34,10 +34,10 @@ app_instance_uuid = ${app_instance_uuid}
 sqlalchemy.url = mysql://
 
 # Image store directory
-image_store = %(here)s/image_store
+image_store = %(here)s/image-store
 
 # File containing the planet timestamp:
-planet_timestamp = %(here)s/planet_timestamp.txt
+planet_timestamp = %(here)s/planet-timestamp.txt
 
 # WARNING: *THE LINE BELOW MUST BE UNCOMMENTED ON A PRODUCTION ENVIRONMENT*
 # Debug mode will enable the interactive debugging tool, allowing ANYONE to

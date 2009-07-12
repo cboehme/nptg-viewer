@@ -37,5 +37,6 @@ setup(
 	[paste.paster_command]
 	load-planet = novam.commands.load_planet:LoadPlanetCommand
 	update-planet = novam.commands.update_planet:UpdatePlanetCommand
+	auto-update-planet = novam.commands.auto_update_planet:AutoUpdatePlanetCommand
     """,
 )
