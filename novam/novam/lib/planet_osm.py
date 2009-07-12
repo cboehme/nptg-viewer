@@ -173,7 +173,7 @@ class Updater(_TransactionHandling, ContentHandler, ErrorHandler):
 					node = session.query(model.Stop).filter(sql.and_(
 						model.stops.c.osm_id == attrs.getValue("id"),
 						model.stops.c.osm_version < attrs.getValue("version")
-						)).first()
+						)).enable_eagerloads(False).first()
 					if node:
 						self._begin()
 						session.execute(model.stops.delete().where(
@@ -184,7 +184,9 @@ class Updater(_TransactionHandling, ContentHandler, ErrorHandler):
 				if self.mode in (self.__MODE_CREATE, self.__MODE_MODIFY):
 					lon, lat = float(attrs.getValue("lon")), float(attrs.getValue("lat"))
 					if point_in_polygon(lon, lat, self.area):
-						node = session.query(model.Stop).filter_by(osm_id=attrs.getValue("id")).first()
+						node = session.query(model.Stop).filter_by(
+							osm_id=attrs.getValue("id")
+							).enable_eagerloads(False).first()
 						if not node:
 							self.current_stop = model.Stop(attrs.getValue("lat"), attrs.getValue("lon"), \
 								attrs.getValue("id"), attrs.getValue("version"))

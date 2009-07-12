@@ -2,6 +2,8 @@ from datetime import datetime, timedelta
 from paste.script.command import Command
 from paste.deploy import appconfig
 from pylons import config
+from urlparse import urljoin
+import os
 
 from novam.config.environment import load_environment
 
@@ -43,8 +45,8 @@ class AutoUpdatePlanetCommand(Command):
 		import novam.lib.planet_osm as planet
 		from novam.model import planet_timestamp
 	
-		self.server = self.argv[0]
-		granularity = self.argv[1]
+		self.server = self.args[0]
+		granularity = self.args[1]
 
 		# Maximum number of days that are applied through a diff. This
 		# should be equal or less than the number of planet diffs on
@@ -59,13 +61,13 @@ class AutoUpdatePlanetCommand(Command):
 			print "Your database is too old. Please import a new planet dump."
 			return
 
-		def retrieve_and_apply_diff(diff_granularity):
+		def retrieve_and_apply_diff(diff_granularity, start_time):
 			TIME_FORMAT = {
 				"daily": "%Y%m%d",
 				"hourly": "%Y%m%d%H",
 				"minutely": "%Y%m%d%H%M"
 			}
-
+			
 			if diff_granularity == "daily":
 				end_time = start_time + timedelta(days=1)
 				end_time = end_time.replace(hour=0, minute=0, second=0)
@@ -80,34 +82,43 @@ class AutoUpdatePlanetCommand(Command):
 			file_to = end_time.strftime(TIME_FORMAT[diff_granularity])
 			filename = "%s-%s.osc.gz" % (file_from, file_to)
 
-			# Retrieve timestamp for latest available diff on the server:
-			fh = urlopen(self.server + "/" + diff_type + "/timestamp.txt")
-			latest = datetime.strptime(fh.read(20), planet_timestamp.TIMESTAMP_FORMAT)
-			fh.close();
-			if end_time <= latest:
-				planet.load(self.server + "/" + diff_type + "/" + filename, end_time, planet.Updater())
-				current_ts = end_time
-				age = datetime.utcnow() - current_ts
-				return True
-			else:
-				return False
+			print "Loading diff", diff_granularity, urljoin(self.server), diff_granularity + "/" + filename), "...",
+			try:
+				planet.load(urljoin(self.server), diff_granularity + "/" + filename), end_time, planet.Updater())
+			except:
+				print "failed"
+				return start_time
+			print "done"
+			return end_time
 
 		# Apply daily diffs:
 		while age.days > 0:
-			if not retrieve_and_apply_diff("daily"):
+			new_ts = retrieve_and_apply_diff("daily", current_ts)
+			if new_ts == current_ts:
 				print "No new daily diffs available yet. Please try later again"
 				return
+			else:
+				current_ts = new_ts
+				age = datetime.utcnow() - current_ts
 
 		# Apply hourly diffs:
 		if granularity in ("hourly", "minutely"):
 			while age.seconds / 3600 > 0:
-				if not retrieve_and_apply_diff("hourly"):
-					print "No new hourly diffs available yet. Please try later again"
+				new_ts = retrieve_and_apply_diff("hourly", current_ts)
+				if new_ts == current_ts:
+					print "No new daily diffs available yet. Please try later again"
 					return
+				else:
+					current_ts = new_ts
+					age = datetime.utcnow() - current_ts
 
 		# Apply minutely diffs:
 		if granularity == "minutely":
 			while (age.seconds % 3600) / 60 > 0:
-				if not retrieve_and_apply_diff("hourly"):
+				new_ts = retrieve_and_apply_diff("minutely", current_ts)
+				if new_ts == current_ts:
 					print "No new minutely diffs available yet. Please try later again"
 					return
+				else:
+					current_ts = new_ts
+					age = datetime.utcnow() - current_ts
