@@ -165,7 +165,7 @@ class Updater(_TransactionHandling, ContentHandler, ErrorHandler):
 					self._begin()
 					session.execute(model.stops.delete().where(sql.and_(
 						model.stops.c.osm_id == attrs.getValue("id"),
-						model.stops.c.osm_version == attrs.getValue("version")
+						model.stops.c.osm_version == int(attrs.getValue("version")) - 1
 						)))
 					self.stop_deleted = True
 

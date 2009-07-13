@@ -158,7 +158,7 @@ def test_delete_bus_stops():
 		"""<?xml version='1.0' encoding='UTF-8'?>
 		   <osmChange version="0.6" generator="osmosis">
 			 <delete>
-			   <node id="102" version="3" timestamp="" lat="53.2" lon="0.1" />
+			   <node id="102" version="4" timestamp="" lat="53.2" lon="0.1" />
 			 </delete>
 		  </osmChange>
 		""", updater, updater)
@@ -177,14 +177,14 @@ def test_delete_bus_stops():
 
 @with_setup(setup_function, teardown_function)
 def test_delete_only_matching_stops():
-	"""Verify that stops are only deleted if version and id match"""
+	"""Verify that stops are only deleted if version+1 and id match"""
 
 	updater = Updater()
 	parseString(
 		"""<?xml version='1.0' encoding='UTF-8'?>
 		   <osmChange version="0.6" generator="osmosis">
 			 <delete>
-			   <node id="101" version="3" timestamp="" lat="52.3" lon="-1.9" />
+			   <node id="101" version="2" timestamp="" lat="52.3" lon="-1.9" />
 			 </delete>
 		  </osmChange>
 		""", updater, updater)

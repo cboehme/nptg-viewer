@@ -43,7 +43,7 @@ class AutoUpdatePlanetCommand(Command):
 		load_environment(conf.global_conf, conf.local_conf)
 
 		import novam.lib.planet_osm as planet
-		from novam.model import planet_timestamp
+		from novam.model import meta, planet_timestamp
 	
 		self.server = self.args[0]
 		granularity = self.args[1]
@@ -59,13 +59,13 @@ class AutoUpdatePlanetCommand(Command):
 
 		if age.days > MAX_DAYS:
 			print "Your database is too old. Please import a new planet dump."
-			return
+			return 1
 
 		def retrieve_and_apply_diff(diff_granularity, start_time):
 			TIME_FORMAT = {
 				"daily": "%Y%m%d",
 				"hourly": "%Y%m%d%H",
-				"minutely": "%Y%m%d%H%M"
+				"minute": "%Y%m%d%H%M"
 			}
 			
 			if diff_granularity == "daily":
@@ -74,7 +74,7 @@ class AutoUpdatePlanetCommand(Command):
 			elif diff_granularity == "hourly":
 				end_time = start_time + timedelta(hours=1)
 				end_time = end_time.replace(minute=0, second=0)
-			elif diff_granularity == "minutely":
+			elif diff_granularity == "minute":
 				end_time = start_time + timedelta(minutes=1)
 				end_time = end_time.replace(second=0)
 
@@ -82,9 +82,15 @@ class AutoUpdatePlanetCommand(Command):
 			file_to = end_time.strftime(TIME_FORMAT[diff_granularity])
 			filename = "%s-%s.osc.gz" % (file_from, file_to)
 
-			print "Loading diff", diff_granularity, urljoin(self.server, diff_granularity + "/" + filename), "...",
+			if self.server[:5] == "file:":
+				url = os.path.join(self.server, diff_granularity, filename)
+			else:
+				url = urljoin(self.server, diff_granularity + "/" + filename)
+
+			print "Loading diff", diff_granularity, url, "...",
 			try:
-				planet.load(urljoin(self.server, diff_granularity + "/" + filename), end_time, planet.Updater())
+				planet.load(url, end_time, planet.Updater())
+				meta.session.commit()
 			except:
 				print "failed"
 				return start_time
@@ -96,29 +102,29 @@ class AutoUpdatePlanetCommand(Command):
 			new_ts = retrieve_and_apply_diff("daily", current_ts)
 			if new_ts == current_ts:
 				print "No new daily diffs available yet. Please try later again"
-				return
+				break
 			else:
 				current_ts = new_ts
 				age = datetime.utcnow() - current_ts
 
 		# Apply hourly diffs:
 		if granularity in ("hourly", "minutely"):
-			while age.seconds / 3600 > 0:
+			while age.days > 0 or age.seconds / 3600 > 0:
 				new_ts = retrieve_and_apply_diff("hourly", current_ts)
 				if new_ts == current_ts:
 					print "No new daily diffs available yet. Please try later again"
-					return
+					break
 				else:
 					current_ts = new_ts
 					age = datetime.utcnow() - current_ts
 
 		# Apply minutely diffs:
 		if granularity == "minutely":
-			while (age.seconds % 3600) / 60 > 0:
-				new_ts = retrieve_and_apply_diff("minutely", current_ts)
+			while age.days > 0 or age.seconds / 60 > 0:
+				new_ts = retrieve_and_apply_diff("minute", current_ts)
 				if new_ts == current_ts:
 					print "No new minutely diffs available yet. Please try later again"
-					return
+					break
 				else:
 					current_ts = new_ts
 					age = datetime.utcnow() - current_ts

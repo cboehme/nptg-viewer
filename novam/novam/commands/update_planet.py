@@ -42,6 +42,7 @@ class UpdatePlanetCommand(Command):
 		load_environment(conf.global_conf, conf.local_conf)
 
 		import novam.lib.planet_osm as planet
-		from novam.model import planet_timestamp
+		from novam.model import meta, planet_timestamp
 		
 		planet.load(self.args[0], datetime.strptime(self.args[1], planet_timestamp.FORMAT), planet.Updater())
+		meta.session.commit()
