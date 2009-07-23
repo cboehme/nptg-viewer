@@ -1,0 +1,59 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+
+<html>
+<head>
+	<title>NOVAM-Viewer</title>
+
+	<link rel="icon" type="image/png" href="site-icon.png">
+
+	<link rel="stylesheet" href="base-viewer.css" type="text/css">
+
+	<script src="scripts/prototype.js" type="text/javascript"></script>
+	<script src="scripts/OpenLayers.js" type="text/javascript"></script>
+	<script src="scripts/OpenStreetMap.js" type="text/javascript"></script>
+	<script src="scripts/NaptanMerger.js" type="text/javascript"></script>
+	<script type="text/javascript">
+		var mapControl = null;
+
+		var currentStop = null;
+
+		runOnLoad(function (evt) {
+			stopPanel = new NaptanMerger.WidgetContainer('stopPanel');
+
+			mapControl = new NaptanMerger.MapControl('map');
+			stopViewer = new NaptanMerger.StopViewer();
+			
+			stopPanel.embedWidget(stopViewer);
+
+			mapControl.events.register("stop_click", this, function (evt) {
+				if (currentStop) {
+					mapControl.unselectFeature(currentStop);
+				}
+
+				mapControl.selectFeature(evt.feature);
+				stopViewer.setStop(evt.feature);
+				currentStop = evt.feature;
+			});
+
+			mapControl.events.register("stop_mouseover", this, function(evt) {
+				mapControl.highlightFeature(evt.feature);
+				stopViewer.setStop(evt.feature);
+			});
+
+			mapControl.events.register("stop_mouseout", this, function(evt) {
+				mapControl.unhighlightFeature(evt.feature);
+				stopViewer.setStop(currentStop);
+			});
+		});
+	</script>
+</head>
+
+<body>
+	<h1>NOVAM-Viewer</h1>
+	<!--ul id="tools_menu">
+		<li><a href="">Help</a></li>
+	</ul-->
+	<div id="map"></div>
+	<div id="stopPanel"></div>
+</body>
+</html>
