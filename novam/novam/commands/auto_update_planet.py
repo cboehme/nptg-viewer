@@ -10,8 +10,6 @@ from novam.config.environment import load_environment
 
 __all__ = ['AutoUpdatePlanetCommand']
 
-log = logging.getLogger(__name__)
-
 class AutoUpdatePlanetCommand(Command):
 	# Parser configuration
 	summary = "Update bus stops"
@@ -19,7 +17,7 @@ class AutoUpdatePlanetCommand(Command):
 	"""
 	usage = "server daily|hourly|minutely [config-file]"
 	group_name = "novam"
-	parser = Command.standard_parser(verbose=False)
+	parser = Command.standard_parser()
 	min_args = 2
 	max_args = 3
 
@@ -38,9 +36,10 @@ class AutoUpdatePlanetCommand(Command):
 		config_name = "config:%s" % config_file
 		here_dir = os.getcwd()
 
-		if not self.options.quiet:
-			# Configure logging from the config file
-			self.logging_file_config(config_file)
+		# Configure logging from the config file
+		self.logging_file_config(config_file)
+
+		log = logging.getLogger(__name__)
 
 		conf = appconfig(config_name, relative_to=here_dir)
 		load_environment(conf.global_conf, conf.local_conf)
