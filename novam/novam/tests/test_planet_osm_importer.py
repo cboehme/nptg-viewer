@@ -153,3 +153,46 @@ def test_invalid_import():
 	assert exception, "The import should have failed with an exception"
 	assert table_contents(model.stops, [(1, Decimal("52.3"), Decimal("-1.9"), 123, 2)])
 	assert table_contents(model.tags, [(1, "highway", "bus_stop")])
+
+
+@with_setup(setup_function, teardown_function)
+def test_unexpected_input():
+	"""Test that unknown or unexpected parts of the xml input are ignored"""
+
+	importer = Importer()
+	parseString(
+		"""<?xml version='1.0' encoding='UTF-8'?>
+		   <osm version='0.6' generator='JOSM'>
+			 <node id='1' version='1' lat='52.2551' lon='-1.9660'>
+			   <tag k='name' v='I am a node' />
+			 </node>
+			 <node id='3' version='1' lat='52.0440' lon='-2.3962'>
+			  <tag k='naptan:AtcoCode' v='1002' />
+			  <tag k='shelter' v='yes' />
+			 </node>
+			 <node id='4' version='1' lat='52.2934' lon='-2.3571'>
+			   <tag k='highway' v='bus_stop'>
+			     <unexpected-tag>Blabla</unexpected-tag>
+			   </tag>
+			 </node>
+			 <unexpected-tag>
+			   <node id='9' version='2' lat='52.23' lon='-2.3'>
+			     <tag k='highway' v='bus_stop' />
+			   </node>	
+			 </unexpected-tag>
+		   </osm>
+		""", importer, importer)
+	meta.session.commit()
+	
+	# FIXME: The order of the inserts does not actually matter. So we should not
+	# check the value of the id field:
+	assert table_contents(model.stops, [
+		(2, Decimal("52.0440"), Decimal("-2.3962"), 3, 1),
+		(3, Decimal("52.2934"), Decimal("-2.3571"), 4, 1) 
+	])
+	assert table_contents(model.tags, [
+		(2, "naptan:AtcoCode", "1002"),
+		(2, "shelter", "yes"),
+		(3, "highway", "bus_stop")
+	])
+

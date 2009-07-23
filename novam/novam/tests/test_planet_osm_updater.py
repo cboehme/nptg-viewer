@@ -459,3 +459,48 @@ def test_invalid_file():
 		(2, "highway", "bus_stop"),
 		(3, "naptan:AtcoCode", "12345")
 	])
+
+@with_setup(setup_function, teardown_function)
+def test_unexpected_input():
+	"""Test that unknown or unexpected input in the xml input is ignored"""
+
+	updater = Updater()
+	parseString(
+		"""<?xml version='1.0' encoding='UTF-8'?>
+		   <osmChange version="0.6" generator="osmosis">
+			 <create>
+			   <node id="104" version="1" timestamp="" lat="52.6" lon="-3.3">
+				 <tag k="highway" v="bus_stop"/>
+				 <unexpected-tag>Blabla</unexpected-tag>
+				 <tag k="name" v="Stop AB"/>
+			   </node>
+			   <node id="105" version="1" timestamp="" lat="53.3" lon="-6.6">
+				 <tag k="highway" v="bus_stop"/>
+			   </node>
+			 </create>
+			 <unexpected-tag>
+			   <create>
+			     <node id="106" version="1" timestamp="" lat="52.6" lon="-3.3">
+				   <tag k="highway" v="bus_stop"/>
+			     </node>
+			   </create>
+			 </unexpected-tag>
+		  </osmChange>
+		""", updater, updater)
+	meta.session.commit()
+	
+	# FIXME: The order of the inserts does not actually matter. So we should not
+	# check the value of the id field:
+	assert table_contents(model.stops, [
+		(1, Decimal("52.3"), Decimal("-1.9"), 101, 2),
+		(2, Decimal("51.3"), Decimal("0.4"), 102, 3),
+		(3, Decimal("53.2"), Decimal("0.1"), 103, 1),
+		(4, Decimal("52.6"), Decimal("-3.3"), 104, 1)
+	])
+	assert table_contents(model.tags, [
+		(1, "highway", "bus_stop"),
+		(2, "highway", "bus_stop"),
+		(3, "naptan:AtcoCode", "12345"),
+		(4, "highway", "bus_stop"),
+		(4, "name", "Stop AB")
+	])

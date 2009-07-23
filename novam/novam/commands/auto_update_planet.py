@@ -4,10 +4,13 @@ from paste.deploy import appconfig
 from pylons import config
 from urlparse import urljoin
 import os
+import logging
 
 from novam.config.environment import load_environment
 
 __all__ = ['AutoUpdatePlanetCommand']
+
+log = logging.getLogger(__name__)
 
 class AutoUpdatePlanetCommand(Command):
 	# Parser configuration
@@ -58,7 +61,7 @@ class AutoUpdatePlanetCommand(Command):
 		age = datetime.utcnow() - current_ts
 
 		if age.days > MAX_DAYS:
-			print "Your database is too old. Please import a new planet dump."
+			log.critical("Your database is too old. Please import a new planet dump.")
 			return 1
 
 		def retrieve_and_apply_diff(diff_granularity, start_time):
@@ -87,21 +90,18 @@ class AutoUpdatePlanetCommand(Command):
 			else:
 				url = urljoin(self.server, diff_granularity + "/" + filename)
 
-			print "Loading diff", diff_granularity, url, "...",
 			try:
 				planet.load(url, end_time, planet.Updater())
 				meta.session.commit()
 			except:
-				print "failed"
 				return start_time
-			print "done"
 			return end_time
 
 		# Apply daily diffs:
 		while age.days > 0:
 			new_ts = retrieve_and_apply_diff("daily", current_ts)
 			if new_ts == current_ts:
-				print "No new daily diffs available yet. Please try later again"
+				log.info("No new daily diffs available yet. Please try again later.")
 				break
 			else:
 				current_ts = new_ts
@@ -112,7 +112,7 @@ class AutoUpdatePlanetCommand(Command):
 			while age.days > 0 or age.seconds / 3600 > 0:
 				new_ts = retrieve_and_apply_diff("hourly", current_ts)
 				if new_ts == current_ts:
-					print "No new daily diffs available yet. Please try later again"
+					log.info("No new hourly diffs available yet. Please try again later.")
 					break
 				else:
 					current_ts = new_ts
@@ -123,7 +123,7 @@ class AutoUpdatePlanetCommand(Command):
 			while age.days > 0 or age.seconds / 60 > 0:
 				new_ts = retrieve_and_apply_diff("minute", current_ts)
 				if new_ts == current_ts:
-					print "No new minutely diffs available yet. Please try later again"
+					log.info("No new minutely diffs available yet. Please try again later.")
 					break
 				else:
 					current_ts = new_ts

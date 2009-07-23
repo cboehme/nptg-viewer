@@ -49,6 +49,7 @@ class Importer(_TransactionHandling, ContentHandler, ErrorHandler):
 		_TransactionHandling.__del__(self)
 	
 	def startDocument(self):
+		self.valid_path = [True]
 		self.current_stop = None
 		self.is_bus_stop = False
 		self._begin()
@@ -57,33 +58,44 @@ class Importer(_TransactionHandling, ContentHandler, ErrorHandler):
 		self._commit()
 
 	def startElement(self, name, attrs):
-		try:	
-			if name == "osm":
-				session.execute(model.stops.delete())
-
-			elif name == "node":
-				self.current_stop = model.Stop(attrs.getValue("lat"), attrs.getValue("lon"), \
-					attrs.getValue("id"), attrs.getValue("version"))
-				self._begin()
-				session.add(self.current_stop)
-				self.is_bus_stop = False
-
-			elif self.current_stop and name == "tag":
-				key, val = attrs.getValue("k"), attrs.getValue("v")
-				self.current_stop.tags[key] = model.Tag(key, val)
-				self.is_bus_stop = self.is_bus_stop or (key == "naptan:AtcoCode" or (key == "highway" and val == "bus_stop"))
+		try:
+			if self.valid_path[-1]:
+				if len(self.valid_path) == 1 and name == "osm":
+					session.execute(model.stops.delete())
+					self.valid_path.append(True)
+				elif len(self.valid_path) == 2 and name == "node":
+					self.current_stop = model.Stop(
+						attrs.getValue("lat"), attrs.getValue("lon"),
+						attrs.getValue("id"), attrs.getValue("version")
+					)
+					self._begin()
+					session.add(self.current_stop)
+					self.is_bus_stop = False
+					self.valid_path.append(True)
+				elif len(self.valid_path) == 3 and name == "tag":
+					key, val = attrs.getValue("k"), attrs.getValue("v")
+					self.current_stop.tags[key] = model.Tag(key, val)
+					self.is_bus_stop = self.is_bus_stop \
+						or (key == "naptan:AtcoCode" \
+						or (key == "highway" and val == "bus_stop"))
+					self.valid_path.append(True)
+				else:
+					self.valid_path.append(False)
+			else:
+				self.valid_path.append(False)
 		except:
 			self._rollback_all()
 			raise
 
 	def endElement(self, name):
 		try:
-			if name == "node":
+			if self.valid_path[-1] and name == "node":
 				if self.is_bus_stop:
 					self._commit()
 				else:
 					self._rollback()
 				self.current_stop = None
+			del self.valid_path[-1]
 		except:
 			self._rollback_all()
 			raise
@@ -142,6 +154,7 @@ class Updater(_TransactionHandling, ContentHandler, ErrorHandler):
 		_TransactionHandling.__del__(self)
 		
 	def startDocument(self):
+		self.valid_path = [True]
 		self.mode = self.__MODE_NONE
 		self.current_stop = None
 		self.is_bus_stop = False
@@ -153,69 +166,90 @@ class Updater(_TransactionHandling, ContentHandler, ErrorHandler):
 
 	def startElement(self, name, attrs):
 		try:
-			if name == "create":
-				self.mode = self.__MODE_CREATE
-			elif name == "modify":
-				self.mode = self.__MODE_MODIFY
-			elif name == "delete":
-				self.mode = self.__MODE_DELETE
+			if self.valid_path[-1]:
+				if len(self.valid_path) == 1 and name  == "osmChange":
+					self.valid_path.append(True)
 
-			elif name == "node":	
-				if self.mode == self.__MODE_DELETE:
-					self._begin()
-					session.execute(model.stops.delete().where(sql.and_(
-						model.stops.c.osm_id == attrs.getValue("id"),
-						model.stops.c.osm_version == int(attrs.getValue("version")) - 1
-						)))
-					self.stop_deleted = True
+				elif len(self.valid_path) == 2 and name == "create":
+					self.mode = self.__MODE_CREATE
+					self.valid_path.append(True)
+				elif len(self.valid_path) == 2 and name == "modify":
+					self.mode = self.__MODE_MODIFY
+					self.valid_path.append(True)
+				elif len(self.valid_path) == 2 and name == "delete":
+					self.mode = self.__MODE_DELETE
+					self.valid_path.append(True)
 
-				if self.mode == self.__MODE_MODIFY:
-					node = session.query(model.Stop).filter(sql.and_(
-						model.stops.c.osm_id == attrs.getValue("id"),
-						model.stops.c.osm_version < attrs.getValue("version")
-						)).enable_eagerloads(False).first()
-					if node:
+				elif len(self.valid_path) == 3 and name == "node":
+					if self.mode == self.__MODE_DELETE:
 						self._begin()
-						session.execute(model.stops.delete().where(
-							model.stops.c.osm_id == attrs.getValue("id"))
-						)
+						session.execute(model.stops.delete().where(sql.and_(
+							model.stops.c.osm_id == attrs.getValue("id"),
+							model.stops.c.osm_version == int(attrs.getValue("version")) - 1
+						)))
 						self.stop_deleted = True
 
-				if self.mode in (self.__MODE_CREATE, self.__MODE_MODIFY):
-					lon, lat = float(attrs.getValue("lon")), float(attrs.getValue("lat"))
-					if point_in_polygon(lon, lat, self.area):
-						node = session.query(model.Stop).filter_by(
-							osm_id=attrs.getValue("id")
-							).enable_eagerloads(False).first()
-						if not node:
-							self.current_stop = model.Stop(attrs.getValue("lat"), attrs.getValue("lon"), \
-								attrs.getValue("id"), attrs.getValue("version"))
+					if self.mode == self.__MODE_MODIFY:
+						node = session.query(model.Stop).filter(sql.and_(
+							model.stops.c.osm_id == attrs.getValue("id"),
+							model.stops.c.osm_version < attrs.getValue("version")
+							)).enable_eagerloads(False).first()
+						if node:
 							self._begin()
-							session.add(self.current_stop)
-							self.is_bus_stop = False
+							session.execute(model.stops.delete().where(
+								model.stops.c.osm_id == attrs.getValue("id"))
+							)
+							self.stop_deleted = True
 
-			elif self.current_stop and name == "tag":
-				key, val = attrs.getValue("k"), attrs.getValue("v")
-				self.current_stop.tags[key] = model.Tag(key, val)
-				self.is_bus_stop = self.is_bus_stop or (key == "naptan:AtcoCode" or (key == "highway" and val == "bus_stop"))
+					if self.mode in (self.__MODE_CREATE, self.__MODE_MODIFY):
+						lon, lat = float(attrs.getValue("lon")), float(attrs.getValue("lat"))
+						if point_in_polygon(lon, lat, self.area):
+							node = session.query(model.Stop).filter_by(
+								osm_id=attrs.getValue("id")
+							).enable_eagerloads(False).first()
+							if not node:
+								self.current_stop = model.Stop(
+									attrs.getValue("lat"), attrs.getValue("lon"),
+									attrs.getValue("id"), attrs.getValue("version")
+								)
+								self._begin()
+								session.add(self.current_stop)
+								self.is_bus_stop = False
+					self.valid_path.append(True)
+
+				elif len(self.valid_path) == 4 and name == "tag":
+					if self.current_stop:
+						key, val = attrs.getValue("k"), attrs.getValue("v")
+						self.current_stop.tags[key] = model.Tag(key, val)
+						self.is_bus_stop = self.is_bus_stop \
+							or (key == "naptan:AtcoCode" \
+							or (key == "highway" and val == "bus_stop"))
+					self.valid_path.append(True)
+
+				else:
+					self.valid_path.append(False)
+			else:
+				self.valid_path.append(False)
 		except:
 			self._rollback_all()
 			raise
 
 	def endElement(self, name):
 		try:
-			if name in ("create", "modify", "delete"):
-				self.mode = self.__MODE_NONE
-			elif name == "node":
-				if self.current_stop:
-					if self.is_bus_stop:
+			if self.valid_path[-1]:
+				if name in ("create", "modify", "delete"):
+					self.mode = self.__MODE_NONE
+				elif name == "node":
+					if self.current_stop:
+						if self.is_bus_stop:
+							self._commit()
+						else:
+							self._rollback()
+					if self.stop_deleted:
 						self._commit()
-					else:
-						self._rollback()
-				if self.stop_deleted:
-					self._commit()
-					self.stop_deleted = False
-				self.current_stop = None
+						self.stop_deleted = False
+					self.current_stop = None
+			del self.valid_path[-1]
 		except:
 			self._rollback_all()
 			raise
@@ -239,13 +273,15 @@ class _StreamDecompressor:
 
 	def read(self, n=None):
 		if n == None:
-			ret = self.__buffer + self.__decompressor.decompress(self.__stream.read())
+			ret = self.__buffer \
+				+ self.__decompressor.decompress(self.__stream.read())
 			self.__buffer = ""
 			return ret
 		else:
 			try:
 				while len(self.__buffer) < n:
-					self.__buffer = self.__buffer + self.__decompressor.decompress(self.__stream.read(self.__READ_LEN))
+					self.__buffer = self.__buffer \
+						+ self.__decompressor.decompress(self.__stream.read(self.__READ_LEN))
 			except EOFError:
 				n = len(self.__buffer)
 			except:
@@ -257,17 +293,21 @@ class _StreamDecompressor:
 
 
 def load(url, timestamp, handler):
+	log.info("Loading planet dump/diff from %s.", url)	
 	fh = urlopen(url)
 	headers = fh.info()
-	if ("content-type" in headers and headers["content-type"] == "application/x-gzip") or re.search(r"\.gz$", fh.geturl()):
+	if ("content-type" in headers and headers["content-type"] == "application/x-gzip") \
+		or re.search(r"\.gz$", fh.geturl()):
 		buffered_fh = StringIO(fh.read())
 		unzipped_fh = GzipFile(fileobj=buffered_fh)
 		parse(unzipped_fh, handler, handler)
 		unzipped_fh.close()
 		buffered_fh.close()
-	elif ("content-type" in headers and headers["content-type"] == "application/x-bzip2") or re.search(r"\.bz2$", fh.geturl()):
+	elif ("content-type" in headers and headers["content-type"] == "application/x-bzip2") \
+		or re.search(r"\.bz2$", fh.geturl()):
 		parse(_StreamDecompressor(fh), handler, handler)
 	else:
 		parse(fh, handler, handler)
 	model.planet_timestamp.set(timestamp)
 	fh.close()
+	log.info("Dump/diff successfully loaded.")
