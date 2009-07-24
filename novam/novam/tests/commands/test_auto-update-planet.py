@@ -150,7 +150,7 @@ class TestAutoUpdatePlanetCommand(TestCase):
 	def test_minutely_import(self):
 		"""Test that an import with minutely granularity works"""
 
-		timestamp = datetime.utcnow().replace(second=10, microsecond=0)  - timedelta(minutes=2)
+		timestamp = datetime.utcnow().replace(second=10, microsecond=0)  - timedelta(minutes=5)
 		model.planet_timestamp.set(timestamp)
 
 		start_time = timestamp.replace(second=0)
