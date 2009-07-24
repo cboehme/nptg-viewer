@@ -645,6 +645,25 @@ form.StopEditor img
 img[src="scripts/img/slider.png"]
 	{ vertical-align: top; }
 
+#map_OpenLayers_ViewPort
+	{ z-index: 0; }
+
+div.MapLoadIndicator
+{
+	position: absolute;
+	left: 40%;
+	right: 40%;
+	top: 15px;
+
+	padding: 5px;
+
+	border: 1px solid black;
+
+	background-color: white;
+
+	z-index: 1;
+}
+
 /*
  * Panels
  */

@@ -18,6 +18,7 @@ NaptanMerger.MapControl = Class.create({
 	map: null,
 	markerLayer: null,
 	featureControl: null,
+	loadIndicator: null,
 
 	EVENT_TYPES: ['stop_click', 'waypoint_click', 'image_click',
 		'stop_clickout', 'waypoint_clickout', 'image_clickout', 
@@ -48,6 +49,11 @@ NaptanMerger.MapControl = Class.create({
 			projection: NaptanMerger.EPSG900913,
 			displayProjection: NaptanMerger.EPSG4326
 		});
+
+		this.loadIndicator = new Element("div", {"class": "MapLoadIndicator"});
+		this.loadIndicator.appendChild(Text("Loading ..."));
+		$(container).appendChild(this.loadIndicator);
+		this.loadIndicator.hide();
 		
 		// Create a mapnik base layer:
 		var mapnik = new OpenLayers.Layer.OSM.Mapnik("OpenStreetMap", {
@@ -294,6 +300,8 @@ NaptanMerger.MapControl = Class.create({
 			var bounds = this.map.getExtent().clone();
 			bounds = bounds.transform(NaptanMerger.EPSG900913, NaptanMerger.EPSG4326);
 
+			this.loadIndicator.show();
+
 			var request = OpenLayers.Request.GET({
 				url: "osmdata?bbox="+bounds.toBBOX(),
 				scope: this,
@@ -302,6 +310,7 @@ NaptanMerger.MapControl = Class.create({
 					json = new OpenLayers.Format.JSON();
 					data = json.read(request.responseText);
 					this.addStops(data);
+					this.loadIndicator.hide();
 				}
 			});
 		}
