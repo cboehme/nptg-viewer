@@ -632,7 +632,7 @@ form.StopEditor img
 	position: absolute;
 	left: 10px;
 	top: 43px;
-	right: 40%;
+	right: 35%;
 	bottom: 10px;
 
 	border: 1px solid #babdb6;
@@ -652,7 +652,7 @@ img[src="scripts/img/slider.png"]
 #stopPanel
 {
 	position: absolute;
-	left: 60%;
+	left: 65%;
 	top: 43px;
 	right: 10px;
 	bottom: 10px;

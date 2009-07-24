@@ -92,7 +92,8 @@ class AutoUpdatePlanetCommand(Command):
 			try:
 				planet.load(url, end_time, planet.Updater())
 				meta.session.commit()
-			except:
+			except e:
+				log.warning(e.message())
 				return start_time
 			return end_time
 
