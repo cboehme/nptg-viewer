@@ -295,7 +295,7 @@ NaptanMerger.MapControl = Class.create({
 	},
 
 	getStops: function() {
-		if (this.map.getZoom() > 14)
+		if (this.map.getZoom() > 11)
 		{
 			var bounds = this.map.getExtent().clone();
 			bounds = bounds.transform(NaptanMerger.EPSG900913, NaptanMerger.EPSG4326);
@@ -400,7 +400,7 @@ NaptanMerger.MapControl = Class.create({
 			var position = new OpenLayers.Geometry.Point(stop.lon, stop.lat);
 			position = position.transform(NaptanMerger.EPSG4326, NaptanMerger.EPSG900913);
 
-			if ('highway' in stop.tags 
+			/*if ('highway' in stop.tags 
 				&& 'naptan:AtcoCode' in stop.tags 
 				&& !('naptan:unverified' in stop.tags)
 				&& 'route_ref' in stop.tags
@@ -419,6 +419,8 @@ NaptanMerger.MapControl = Class.create({
 					stop.type = 'no_physical_stop';
 			else
 				stop.type = 'merged_stop';
+			*/
+			stop.type = 'plain_naptan_stop';
 
 			newFeatures.push(new OpenLayers.Feature.Vector(position, stop));
 		}, this);

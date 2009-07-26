@@ -45,11 +45,7 @@ NaptanMerger.StopViewer = Class.create(NaptanMerger.Widget, {
 			for (var i = 0; i < tags.length; ++i)
 			{
 				tag = tags[i];
-				if (tag.substring(0,7) == "naptan:")
-					shortenedTag = tag.substring(7);
-				else
-					shortenedTag = tag;
-				appendItem.call(this, shortenedTag+': ', feature.attributes.tags[tag]);
+				appendItem.call(this, tag+': ', feature.attributes.tags[tag]);
 			}
 		}
 	}

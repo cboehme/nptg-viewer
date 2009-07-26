@@ -76,8 +76,7 @@ class Importer(_TransactionHandling, ContentHandler, ErrorHandler):
 					key, val = attrs.getValue("k"), attrs.getValue("v")
 					self.current_stop.tags[key] = model.Tag(key, val)
 					self.is_bus_stop = self.is_bus_stop \
-						or (key == "naptan:AtcoCode" \
-						or (key == "highway" and val == "bus_stop"))
+						or (key == "source" and val == "nptg_import")
 					self.valid_path.append(True)
 				else:
 					self.valid_path.append(False)
