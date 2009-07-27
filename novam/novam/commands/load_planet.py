@@ -15,14 +15,14 @@ class LoadPlanetCommand(Command):
 	description = """Warning: This operation replaces all bus stops which are 
 	currently stored in the database!
 	"""
-	usage = "file:planet.osm|http://www.example.org/planet.osm.bz2 timestamp [config-file]"
+	usage = "file:planet.osm|http://www.example.org/planet.osm.bz2 timestamp delete|nodelete [config-file]"
 	group_name = "novam"
 	parser = Command.standard_parser()
-	min_args = 2
-	max_args = 3
+	min_args = 3
+	max_args = 4
 
 	def command(self):
-		if len(self.args) == 2:
+		if len(self.args) == 3:
 			# Assume the .ini file is ./development.ini
 			config_file = "development.ini"
 			if not os.path.isfile(config_file):
@@ -31,7 +31,7 @@ class LoadPlanetCommand(Command):
 				                 (self.parser.get_usage(), os.path.sep,
 				                 config_file))
 		else:
-			config_file = self.args[2]
+			config_file = self.args[3]
 
 		config_name = "config:%s" % config_file
 		here_dir = os.getcwd()
@@ -47,5 +47,9 @@ class LoadPlanetCommand(Command):
 		import novam.lib.planet_osm as planet
 		from novam.model import meta, planet_timestamp
 		
-		planet.load(self.args[0], datetime.strptime(self.args[1], planet_timestamp.FORMAT), planet.Importer())
+		delete = False
+		if self.args[2] == "delete":
+			delete = True
+
+		planet.load(self.args[0], datetime.strptime(self.args[1], planet_timestamp.FORMAT), planet.Importer(delete))
 		meta.session.commit()

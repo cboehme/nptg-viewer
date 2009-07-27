@@ -42,8 +42,9 @@ class Importer(_TransactionHandling, ContentHandler, ErrorHandler):
 	"""Import all bus stops from a planet file into the database
 	"""
 
-	def __init__(self):
+	def __init__(self, delete=True):
 		_TransactionHandling.__init__(self)
+		self.delete = delete
 
 	def __del__(self):
 		_TransactionHandling.__del__(self)
@@ -61,7 +62,8 @@ class Importer(_TransactionHandling, ContentHandler, ErrorHandler):
 		try:
 			if self.valid_path[-1]:
 				if len(self.valid_path) == 1 and name == "osm":
-					session.execute(model.stops.delete())
+					if self.delete:
+						session.execute(model.stops.delete())
 					self.valid_path.append(True)
 				elif len(self.valid_path) == 2 and name == "node":
 					self.current_stop = model.Stop(
@@ -76,7 +78,8 @@ class Importer(_TransactionHandling, ContentHandler, ErrorHandler):
 					key, val = attrs.getValue("k"), attrs.getValue("v")
 					self.current_stop.tags[key] = model.Tag(key, val)
 					self.is_bus_stop = self.is_bus_stop \
-						or (key == "source" and val == "nptg_import")
+						or (key == "source" and val == "nptg_import") \
+						or key == "place"
 					self.valid_path.append(True)
 				else:
 					self.valid_path.append(False)
