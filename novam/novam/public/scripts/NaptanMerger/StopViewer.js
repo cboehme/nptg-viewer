@@ -10,7 +10,7 @@ NaptanMerger.StopViewer = Class.create(NaptanMerger.Widget, {
 		NaptanMerger.Widget.prototype.initialize.call(this);
 
 		var caption = new Element('h2', {'class': 'StopViewer'});
-		caption.appendChild(Text('Bus Stop'));
+		caption.appendChild(Text('Locality'));
 
 		this.list = new Element('dl', {'class': 'StopViewer'});
 
@@ -35,7 +35,7 @@ NaptanMerger.StopViewer = Class.create(NaptanMerger.Widget, {
 		
 		this.list.removeChildren();
 		if (feature === null)
-			appendItem.call(this, 'No Stop Selected', '');
+			appendItem.call(this, 'No Locality Selected', '');
 		else
 		{
 			var tags = [];

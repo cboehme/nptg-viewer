@@ -139,7 +139,7 @@ NaptanMerger.MapControl = Class.create({
 		// Register event handlers for features:
 		this.featureControl.events.register('click', this, function (evt) {
 			var eventName = evt.feature.attributes.type + '_click';
-			if (evt.feature.attributes.type.endsWith('stop'))
+			if (evt.feature.attributes.type.endsWith('locality'))
 				eventName = 'stop_click';
 			this.events.triggerEvent(eventName, {
 				feature: evt.feature, 
@@ -150,21 +150,21 @@ NaptanMerger.MapControl = Class.create({
 
 		this.featureControl.events.register('clickout', this, function (evt) {
 			var eventName = evt.feature.attributes.type + '_clickout';
-			if (evt.feature.attributes.type.endsWith('stop'))
+			if (evt.feature.attributes.type.endsWith('locality'))
 				eventName = 'stop_clickout';
 			this.events.triggerEvent(eventName, {feature: evt.feature});
 		});
 
 		this.featureControl.events.register('mouseover', this, function (evt) {
 			var eventName = evt.feature.attributes.type + '_mouseover';
-			if (evt.feature.attributes.type.endsWith('stop'))
+			if (evt.feature.attributes.type.endsWith('locality'))
 				eventName = 'stop_mouseover';
 			this.events.triggerEvent(eventName, {feature: evt.feature});
 		});
 
 		this.featureControl.events.register('mouseout', this, function (evt) {
 			var eventName = evt.feature.attributes.type + '_mouseout';
-			if (evt.feature.attributes.type.endsWith('stop'))
+			if (evt.feature.attributes.type.endsWith('locality'))
 				eventName = 'stop_mouseout';
 			this.events.triggerEvent(eventName, {feature: evt.feature});
 		});
@@ -360,7 +360,7 @@ NaptanMerger.MapControl = Class.create({
 	findStop: function(id)
 	{
 		return this.markerLayer.features.find(function(feature) { 
-			return feature.attributes.type.endsWith('stop') && feature.attributes.id == id; 
+			return feature.attributes.type.endsWith('locality') && feature.attributes.id == id; 
 		});
 	},
 	
@@ -421,9 +421,9 @@ NaptanMerger.MapControl = Class.create({
 				stop.type = 'merged_stop';
 			*/
 			if ('place' in stop.tags)
-				stop.type = 'plain_osm_stop';
+				stop.type = 'plain_osm_locality';
 			else
-				stop.type = 'plain_naptan_stop';
+				stop.type = 'plain_nptg_locality';
 
 			newFeatures.push(new OpenLayers.Feature.Vector(position, stop));
 		}, this);
