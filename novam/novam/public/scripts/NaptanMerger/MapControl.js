@@ -420,7 +420,10 @@ NaptanMerger.MapControl = Class.create({
 			else
 				stop.type = 'merged_stop';
 			*/
-			stop.type = 'plain_naptan_stop';
+			if ('place' in stop.tags)
+				stop.type = 'plain_osm_stop';
+			else
+				stop.type = 'plain_naptan_stop';
 
 			newFeatures.push(new OpenLayers.Feature.Vector(position, stop));
 		}, this);
