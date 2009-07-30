@@ -161,22 +161,24 @@ dl.WaypointViewer
 
 dl.WaypointViewer dt
 {
-	display: inline-block;
+	display: block;
+	float: left;
+	clear: both;
+
 	width: auto;
-	min-width: 80px;
+	min-width: 180px;
 
 	font-weight: bold;
 }
 
 dl.WaypointViewer dd
 {
-	display: inline; 
+	display: block;
+	margin-left: 180px;
 
-	margin-left: 0px;
+	width: auto;
+
 }
-
-dl.WaypointViewer dd:after
-	{ content: '\A'; }
 
 /*
  * StopViewer
@@ -204,7 +206,10 @@ dl.StopViewer
 
 dl.StopViewer dt
 {
-	display: inline-block;
+	display: block;
+	float: left;
+	clear: both;
+
 	width: auto;
 	min-width: 180px;
 
@@ -213,13 +218,12 @@ dl.StopViewer dt
 
 dl.StopViewer dd
 {
-	display: inline; 
+	display: block;
+	margin-left: 180px;
 
-	margin-left: 0px;
+	width: auto;
+
 }
-
-dl.StopViewer dd:after
-	{ content: '\A'; }
 
 /*
  * PositionChooser
@@ -468,7 +472,10 @@ dl.MergeDialog
 
 dl.MergeDialog dt
 {
-	display: inline-block;
+	display: block;
+	float: left;
+	clear: both;
+
 	width: auto;
 	min-width: 180px;
 
@@ -477,13 +484,12 @@ dl.MergeDialog dt
 
 dl.MergeDialog dd
 {
-	display: inline; 
+	display: block;
+	margin-left: 180px;
 
-	margin-left: 0px;
+	width: auto;
+
 }
-
-dl.MergeDialog dd:after
-	{ content: '\A'; }
 
 /*
  * StopEditor
