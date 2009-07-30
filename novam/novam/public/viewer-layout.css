@@ -49,6 +49,21 @@ div.MapLoadIndicator
 	left: 65%;
 	top: 43px;
 	right: 10px;
+	bottom: 50%;
+
+	margin: 0px;
+	padding: 0px;
+	border: none;
+
+	margin-left: 20px;
+}
+
+#mapKey
+{
+	position: absolute;
+	left: 65%;
+	top: 50%;
+	right: 10px;
 	bottom: 10px;
 
 	margin: 0px;
@@ -56,4 +71,29 @@ div.MapLoadIndicator
 	border: none;
 
 	margin-left: 20px;
+}
+
+#mapKey dl
+{
+	margin-left: 10px;
+	margin-top: 35px;
+}
+
+#mapKey dt
+{
+	display: block;
+	float: left;
+	clear: both;
+
+	width: 20px;
+	height: 20px;
+}
+
+#mapKey dd
+{
+	display: block;
+	margin-left: 30px;
+	margin-bottom: 7px;
+
+	width: auto;
 }
