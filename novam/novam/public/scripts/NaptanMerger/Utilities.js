@@ -127,38 +127,3 @@ function findLabelFor(element)
 
 	return null;
 }
-
-
-/* 
- * Run on load 
- */
-function runOnLoad(func)
-{ 
-	if (runOnLoad.loaded) func();
-	else runOnLoad.functions.push(func);
-}
-
-runOnLoad.functions = [];
-runOnLoad.loaded = false;
-runOnLoad.run = function()
-{
-	if (runOnLoad.loaded) return;
-	
-	runOnLoad.functions.each(function(f) {
-		f();
-		/*try { f(); }
-		catch(e) {}
-		*/
-	});
-
-	runOnLoad.loaded = true;
-	delete runOnLoad.functions;
-	delete runOnLoad.run;
-}
-
-if (window.addEventListener)
-	window.addEventListener("load", runOnLoad.run, false);
-else if (window.attachEvent)
-	window.attachEvent("onload", runOnLoad.run);
-else
-	window.onload = runOnLoad.run;

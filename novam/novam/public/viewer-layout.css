@@ -1,0 +1,59 @@
+/*
+ * MapControl
+ */
+
+#map
+{
+	position: absolute;
+	left: 10px;
+	top: 43px;
+	right: 35%;
+	bottom: 10px;
+
+	border: 1px solid #babdb6;
+}
+
+/* For some reason the slider image has a top offset of 6px which results in 
+ * a displacement of the slider on the zoombar. Setting vertical-align to top 
+ * solves this issue. However it should not be neccessary in the first place!
+ */
+img[src="scripts/img/slider.png"]
+	{ vertical-align: top; }
+
+#map_OpenLayers_ViewPort
+	{ z-index: 0; }
+
+div.MapLoadIndicator
+{
+	position: absolute;
+	left: 40%;
+	right: 40%;
+	top: 15px;
+
+	padding: 5px;
+
+	border: 1px solid black;
+
+	background-color: white;
+
+	z-index: 1;
+}
+
+/*
+ * Panels
+ */
+
+#stopPanel
+{
+	position: absolute;
+	left: 65%;
+	top: 43px;
+	right: 10px;
+	bottom: 10px;
+
+	margin: 0px;
+	padding: 0px;
+	border: none;
+
+	margin-left: 20px;
+}

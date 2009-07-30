@@ -3,6 +3,8 @@ body
 	background-color: white; 
 
 	font-family: sans-serif;
+
+	margin: 0px;
 }
 
 /*
@@ -15,9 +17,7 @@ ul#tools_menu
 	margin: 0px;
 
 	padding-top: 5px;
-	padding-bottom: 2px;
-
-	border-bottom: 6px solid #204a87;
+	padding-bottom: 5px;
 
 	background-color: #729fcf;
 	color: white;
@@ -31,22 +31,27 @@ h1
 	position: absolute;
 	left: 0px;
 	top: 5px;
-	width: 150px;
+	width: auto;
 	height: 15px;
 	
-	padding-left: 30px;
-	padding-right: 0px;
+	padding-left: 50px;
+	padding-right: 50px;
 
 	letter-spacing: 0.5em;
+
+	background-image: url("header_right_edge.png");
+	background-position: right center;
+	background-repeat: no-repeat;
 }
 
-h1:after
+h1 img
 {
 	position: absolute;
-	right: 0px;
-	top: 0px;
+	top: -3px;
+	left: 10px;
 
-	content: url("edge2.png");
+	width: 35px;
+	height: 30px;
 }
 
 ul#tools_menu
@@ -61,15 +66,10 @@ ul#tools_menu
 	padding-right: 30px;
 
 	text-align: right;
-}
 
-ul#tools_menu:after
-{
-	position: absolute;
-	left: 0px;
-	top: 0px;
-
-	content: url("edge.png");
+	background-image: url("header_left_edge.png");
+	background-position: left center;
+	background-repeat: no-repeat;
 }
 
 ul#tools_menu li
@@ -623,84 +623,3 @@ form.StopEditor img
 	vertical-align: middle;
 }
 
-/*
- * MapControl
- */
-
-#map
-{
-	position: absolute;
-	left: 10px;
-	top: 43px;
-	right: 60%;
-	bottom: 40%;
-
-	border: 1px solid #babdb6;
-}
-
-/* For some reason the slider image has a top offset of 6px which results in 
- * a displacement of the slider on the zoombar. Setting vertical-align to top 
- * solves this issue. However it should not be neccessary in the first place!
- */
-img[src="scripts/img/slider.png"]
-	{ vertical-align: top; }
-
-/*
- * Panels
- */
-
-#imagePanel,
-#stopPanel,
-#waypointPanel,
-#mergePanel
-{
-	position: absolute;
-
-	margin: 0px;
-	padding: 0px;
-	border: none;
-}
-
-#imagePanel
-{
-	left: 10px;
-	top: 60%;
-	right: 60%;
-	bottom: 10px;
-
-	margin-top: 10px;
-
-	border-top: 1px solid #babdb6;
-	border-bottom: 1px solid #babdb6;
-}
-
-#stopPanel
-{
-	left: 40%;
-	top: 43px;
-	right: 30%;
-	bottom: 10px;
-
-	margin-left: 20px;
-}
-
-#waypointPanel
-{
-	left: 70%;
-	top: 43px;
-	right: 10px;
-	bottom: 60%;
-
-	margin-left: 20px;
-	margin-bottom: 20px;
-}
-
-#mergePanel
-{
-	left: 70%;
-	top: 40%;
-	right: 10px;
-	bottom: 10px;
-
-	margin-left: 20px;
-}

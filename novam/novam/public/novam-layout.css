@@ -1,0 +1,81 @@
+/*
+ * MapControl
+ */
+
+#map
+{
+	position: absolute;
+	left: 10px;
+	top: 43px;
+	right: 60%;
+	bottom: 40%;
+
+	border: 1px solid #babdb6;
+}
+
+/* For some reason the slider image has a top offset of 6px which results in 
+ * a displacement of the slider on the zoombar. Setting vertical-align to top 
+ * solves this issue. However it should not be neccessary in the first place!
+ */
+img[src="scripts/img/slider.png"]
+	{ vertical-align: top; }
+
+/*
+ * Panels
+ */
+
+#imagePanel,
+#stopPanel,
+#waypointPanel,
+#mergePanel
+{
+	position: absolute;
+
+	margin: 0px;
+	padding: 0px;
+	border: none;
+}
+
+#imagePanel
+{
+	left: 10px;
+	top: 60%;
+	right: 60%;
+	bottom: 10px;
+
+	margin-top: 10px;
+
+	border-top: 1px solid #babdb6;
+	border-bottom: 1px solid #babdb6;
+}
+
+#stopPanel
+{
+	left: 40%;
+	top: 43px;
+	right: 30%;
+	bottom: 10px;
+
+	margin-left: 20px;
+}
+
+#waypointPanel
+{
+	left: 70%;
+	top: 43px;
+	right: 10px;
+	bottom: 60%;
+
+	margin-left: 20px;
+	margin-bottom: 20px;
+}
+
+#mergePanel
+{
+	left: 70%;
+	top: 40%;
+	right: 10px;
+	bottom: 10px;
+
+	margin-left: 20px;
+}

@@ -7,24 +7,37 @@
 	<link rel="icon" type="image/png" href="site-icon.png">
 
 	<link rel="stylesheet" href="base.css" type="text/css">
+	<link rel="stylesheet" href="novam-layout.css" type="text/css">
 
 	<script src="scripts/prototype.js" type="text/javascript"></script>
 	<script src="scripts/OpenLayers.js" type="text/javascript"></script>
 	<script src="scripts/OpenStreetMap.js" type="text/javascript"></script>
 	<script src="scripts/NaptanMerger.js" type="text/javascript"></script>
 	<script type="text/javascript">
+
 		var mapControl = null;
+		var imageBrowser = null;
+		var positionChooser = null;
+		var stopSelector = null;
+		var mergeSelector = null;
+		var positionSelector = null;
+		var waypointViewer = null;
+		var imageViewer = null;
+		var mergeDialog = null;
+		var stopViewer = null;
+		var stopEditor = null;
 
 		var currentStop = null;
 		var currentMergeStop = null;
 		var currentPosition = null;
 		var currentImage = null;
 
-		runOnLoad(function (evt) {
-			stopPanel = new NaptanMerger.WidgetContainer('stopPanel');
-			mergePanel = new NaptanMerger.WidgetContainer('mergePanel');
-			imagePanel = new NaptanMerger.WidgetContainer('imagePanel');
-			waypointPanel = new NaptanMerger.WidgetContainer('waypointPanel');
+		runApp(function () {
+
+			var stopPanel = new NaptanMerger.WidgetContainer('stopPanel');
+			var mergePanel = new NaptanMerger.WidgetContainer('mergePanel');
+			var imagePanel = new NaptanMerger.WidgetContainer('imagePanel');
+			var waypointPanel = new NaptanMerger.WidgetContainer('waypointPanel');
 
 			mapControl = new NaptanMerger.MapControl('map');
 			imageBrowser = new NaptanMerger.ImageBrowser(mapControl);
@@ -213,10 +226,10 @@
 				stopEditor.updateStopPosition(newPos.lon, newPos.lat);
 			});
 
-			/*mapControl.events.register("drag_cancelled", this, function(evt) {
-				var oldPos = new OpenLayers.LonLat(evt.feature.attributes.lon, evt.feature.attributes.lat);
-				evt.feature.geometry = oldPos.transform(NaptanMerger.EPSG4326, NaptanMerger.EPSG900913);
-			});*/
+			//mapControl.events.register("drag_cancelled", this, function(evt) {
+			//	var oldPos = new OpenLayers.LonLat(evt.feature.attributes.lon, evt.feature.attributes.lat);
+			//	evt.feature.geometry = oldPos.transform(NaptanMerger.EPSG4326, NaptanMerger.EPSG900913);
+			//});
 
 
 			mergeSelector.events.register("click", this, function(evt) {
@@ -459,11 +472,12 @@
 				imageBrowser.unhighlightImage(evt.feature);
 			});
 		});
+
 	</script>
 </head>
 
 <body>
-	<h1>NOVAM</h1>
+	<h1><img src="logo.png" alt="NOVAM-Logo">NOVAM</h1>
 	<ul id="tools_menu">
 		<li><a href="waypoints/import_form">Upload Waypoints</a></li>
 		<li><a href="images/import_form">Upload Images</a></li>
