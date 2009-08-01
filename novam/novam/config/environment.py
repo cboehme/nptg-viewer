@@ -39,7 +39,7 @@ def load_environment(global_conf, app_conf):
 
     # Setup the SQLAlchemy database engine
     engine = engine_from_config(config, 'sqlalchemy.')
-    init_model(engine, config['image_store'], config['planet_timestamp'])
+    init_model(engine, config['planet_timestamp'])
 
     # CONFIGURATION OPTIONS HERE (note: all config options will override
     # any Pylons config options)

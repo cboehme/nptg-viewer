@@ -33,9 +33,6 @@ app_instance_uuid = ${app_instance_uuid}
 # SQLAlchemy database URL
 sqlalchemy.url = mysql://
 
-# Image store directory
-image_store = %(here)s/image-store
-
 # File containing the planet timestamp:
 planet_timestamp = %(here)s/planet-timestamp.txt
 

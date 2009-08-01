@@ -20,11 +20,7 @@ NaptanMerger.MapControl = Class.create({
 	featureControl: null,
 	loadIndicator: null,
 
-	EVENT_TYPES: ['stop_click', 'waypoint_click', 'image_click',
-		'stop_clickout', 'waypoint_clickout', 'image_clickout', 
-		'stop_mouseover', 'waypoint_mouseover', 'image_mouseover',
-		'stop_mouseout', 'waypoint_mouseout', 'image_mouseout',
-		'drag_start', 'drag_done', 'drag_cancelled'],
+	EVENT_TYPES: ['stop_click', 'stop_clickout', 'stop_mouseover', 'stop_mouseout'],
 
 	events: null,
 
@@ -128,8 +124,6 @@ NaptanMerger.MapControl = Class.create({
 
 		this.map.events.register('moveend', this, this.saveMapLocation);
 		this.map.events.register('moveend', this, this.getStops);
-		this.map.events.register('moveend', this, this.getWaypoints);
-		this.map.events.register('moveend', this, this.getImages);
 
 		// Add control for the marker layer:
 		this.featureControl = new NaptanMerger.FeatureControl(this.markerLayer);
@@ -168,19 +162,6 @@ NaptanMerger.MapControl = Class.create({
 				eventName = 'stop_mouseout';
 			this.events.triggerEvent(eventName, {feature: evt.feature});
 		});
-
-		this.featureControl.events.register('drag_start', this, function (evt) {
-			this.events.triggerEvent('drag_start', {feature: evt.feature});
-		});
-
-		this.featureControl.events.register('drag_done', this, function (evt) {
-			this.events.triggerEvent('drag_done', {feature: evt.feature});
-		});
-
-		this.featureControl.events.register('drag_cancelled', this, function (evt) {
-			this.events.triggerEvent('drag_cancelled', {feature: evt.feature});
-		});
-
 		
 		// Load previous map location:
 		var loc = new OpenLayers.LonLat(-1.902, 52.477);
@@ -197,8 +178,6 @@ NaptanMerger.MapControl = Class.create({
 			
 		// Load features:
 		this.getStops();
-		this.getWaypoints();
-		this.getImages();
 	},
 
 	destroy: function() {
@@ -303,54 +282,28 @@ NaptanMerger.MapControl = Class.create({
 			this.loadIndicator.show();
 
 			var request = OpenLayers.Request.GET({
-				url: "osmdata?bbox="+bounds.toBBOX(),
+				url: "localities?bbox="+bounds.toBBOX(),
 				scope: this,
 				success: function (request)
 				{
 					json = new OpenLayers.Format.JSON();
 					data = json.read(request.responseText);
-					this.addStops(data);
+					this.addStops(data.localities);
 					this.loadIndicator.hide();
 				}
 			});
-		}
-	},
-
-	getWaypoints: function() {
-		if (this.map.getZoom() > 14)
-		{
-			var bounds = this.map.getExtent().clone();
-			bounds = bounds.transform(NaptanMerger.EPSG900913, NaptanMerger.EPSG4326);
-
-			var request = OpenLayers.Request.GET({
-				url: "waypoints?bbox="+bounds.toBBOX(),
-				scope: this,
-				success: function(request)
-				{
-					json = new OpenLayers.Format.JSON();
-					data = json.read(request.responseText);
-					this.addWaypoints(data);
+			
+			var deleteFeatures = new Array();
+			this.markerLayer.features.each(function (stop) {
+				if (!this.map.getExtent().containsLonLat(new OpenLayers.LonLat(stop.geometry.x, stop.geometry.y))) {
+					deleteFeatures.push(stop);
 				}
-			});
+			}, this);
+			this.markerLayer.destroyFeatures(deleteFeatures);
 		}
-	},
-
-	getImages: function() {
-		if (this.map.getZoom() > 14)
+		else
 		{
-			var bounds = this.map.getExtent().clone();
-			bounds = bounds.transform(NaptanMerger.EPSG900913, NaptanMerger.EPSG4326);
-
-			var request = OpenLayers.Request.GET({
-				url: "images?bbox="+bounds.toBBOX(),
-				scope: this,
-				success: function(request)
-				{
-					json = new OpenLayers.Format.JSON();
-					data = json.read(request.responseText);
-					this.addImages(data);
-				}
-			});
+			this.markerLayer.destroyFeatures();
 		}
 	},
 
@@ -361,26 +314,6 @@ NaptanMerger.MapControl = Class.create({
 	{
 		return this.markerLayer.features.find(function(feature) { 
 			return feature.attributes.type.endsWith('locality') && feature.attributes.id == id; 
-		});
-	},
-	
-	/**
-	 * Method: findWaypoint
-	 */
-	findWaypoint: function(id)
-	{
-		return this.markerLayer.features.find(function(feature) { 
-			return feature.attributes.type == 'waypoint' && feature.attributes.id == id; 
-		});
-	},
-
-	/**
-	 * Method: findImage
-	 */
-	findImage: function(id)
-	{
-		return this.markerLayer.features.find(function(feature) { 
-			return feature.attributes.type == 'image' && feature.attributes.id == id; 
 		});
 	},
 
@@ -400,82 +333,27 @@ NaptanMerger.MapControl = Class.create({
 			var position = new OpenLayers.Geometry.Point(stop.lon, stop.lat);
 			position = position.transform(NaptanMerger.EPSG4326, NaptanMerger.EPSG900913);
 
-			/*if ('highway' in stop.tags 
-				&& 'naptan:AtcoCode' in stop.tags 
-				&& !('naptan:unverified' in stop.tags)
-				&& 'route_ref' in stop.tags
-				&& 'shelter' in stop.tags)
-					stop.type = 'finished_stop';
-			else if (!('highway' in stop.tags)
-				&& 'naptan:AtcoCode' in stop.tags 
-				&& 'naptan:unverified' in stop.tags)
-					stop.type = 'plain_naptan_stop';
-			else if ('highway' in stop.tags
-				&& !('naptan:AtcoCode' in stop.tags))
-					stop.type = 'plain_osm_stop';
-			else if (!('highway' in stop.tags)
-				&& 'naptan:AtcoCode' in stop.tags 
-				&& stop.tags['physically_present'] == 'no')
-					stop.type = 'no_physical_stop';
-			else
-				stop.type = 'merged_stop';
-			*/
-			if ('place' in stop.tags)
+			stop.tags['duplicate_count'] = stop.duplicate_count;
+			stop.tags['match_count'] = stop.match_count;
+			if ('place' in stop.tags && stop.match_count == 0) {
 				stop.type = 'plain_osm_locality';
-			else
+			}
+			else if ('place' in stop.tags && stop.match_count > 0) {
+				stop.type = 'matched_osm_locality';
+			}
+			else if ('LocalityName' in stop.tags && stop.match_count == 0) {
 				stop.type = 'plain_nptg_locality';
+			}	
+			else if ('LocalityName' in stop.tags && stop.match_count > 0) {
+				stop.type = 'matched_nptg_locality';
+			}
+			else {
+				stop.type = 'plain_osm_locality';
+			}
 
 			newFeatures.push(new OpenLayers.Feature.Vector(position, stop));
 		}, this);
 
 		this.markerLayer.addFeatures(newFeatures);
 	},
-
-	/**
-	 * Method: addWaypoints
-	 * Add waypoints to the marker layer on the map.
-	 *
-	 * Parameters:
-	 * waypoints - {Array of Waypoints} List of waypoints to add to the map.
-	 */
-	addWaypoints: function(waypoints) {
-		var newFeatures = new Array();
-
-		waypoints.each(function(waypoint) {
-			if (this.findWaypoint(waypoint.id) != undefined)  return;
-			
-			var position = new OpenLayers.Geometry.Point(waypoint.lon, waypoint.lat);
-			position = position.transform(NaptanMerger.EPSG4326, NaptanMerger.EPSG900913);
-
-			waypoint.type = "waypoint";
-			
-			newFeatures.push(new OpenLayers.Feature.Vector(position, waypoint));
-		}, this);
-
-		this.markerLayer.addFeatures(newFeatures);
-	},
-
-	/**
-	 * Method: addImages
-	 * Add images to the marker layer.
-	 *
-	 * Parameters:
-	 * images - {Array of Images} List of images to add to the map.
-	 */
-	addImages: function(images) {
-		var newFeatures = new Array();
-
-		images.each(function(image) {
-			if (this.findImage(image.id) != undefined)  return;
-
-			var position = new OpenLayers.Geometry.Point(image.lon, image.lat);
-			position = position.transform(NaptanMerger.EPSG4326, NaptanMerger.EPSG900913);
-
-			image.type = "image";
-			
-			newFeatures.push(new OpenLayers.Feature.Vector(position, image));
-		}, this);
-
-		this.markerLayer.addFeatures(newFeatures);
-	}
 });

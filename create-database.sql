@@ -1,43 +1,25 @@
-CREATE TABLE Stops (
+CREATE TABLE Localities (
 	id BIGINT UNSIGNED AUTO_INCREMENT,
 	lat DECIMAL(10,7) NOT NULL,
 	lon DECIMAL(10,7) NOT NULL,
-	osm_id BIGINT UNSIGNED,
+	osm_id BIGINT SIGNED,
 	osm_version BIGINT UNSIGNED,
+	name VARCHAR(255),
 	PRIMARY KEY (id),
 	INDEX (lat, lon),
 	INDEX (osm_id, osm_version),
-	UNIQUE (osm_id)
+	UNIQUE (osm_id),
+	INDEX (name)
 	)
 ENGINE=InnoDB;
 
 CREATE TABLE Tags (
-	stop_id BIGINT UNSIGNED,
+	locality_id BIGINT UNSIGNED,
 	name VARCHAR(255) NOT NULL,
 	value TEXT NOT NULL,
-	PRIMARY KEY (stop_id, name),
-	FOREIGN KEY (stop_id)
-		REFERENCES Stops(id)
+	PRIMARY KEY (locality_id, name),
+	FOREIGN KEY (locality_id)
+		REFERENCES Localities(id)
 		ON DELETE CASCADE
 	)
-ENGINE=InnoDB;
-
-CREATE TABLE Waypoints (
-	id BIGINT UNSIGNED AUTO_INCREMENT,
-	name VARCHAR(100),
-	lat DECIMAL(10,7) NOT NULL,
-	lon DECIMAL(10,7) NOT NULL,
-	PRIMARY KEY (id),
-	INDEX (lat, lon)
-)
-ENGINE=InnoDB;
-
-CREATE TABLE Images (
-	id BIGINT UNSIGNED AUTO_INCREMENT,
-	lat DECIMAL(10,7) NOT NULL,
-	lon DECIMAL(10,7) NOT NULL,
-	file_id CHAR(36) NOT NULL,
-	PRIMARY KEY (id),
-	INDEX (lat, lon)
-)
 ENGINE=InnoDB;

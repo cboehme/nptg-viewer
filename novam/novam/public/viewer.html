@@ -17,16 +17,20 @@
 
 		var mapControl = null;
 		var stopViewer = null;
+		var matchList = null;
 
 		var currentStop = null;
 
 		runApp(function () {
 			var stopPanel = new NaptanMerger.WidgetContainer('stopPanel');
+			var matchPanel = new NaptanMerger.WidgetContainer('matchPanel');
 
 			mapControl = new NaptanMerger.MapControl('map');
 			stopViewer = new NaptanMerger.StopViewer();
+			matchList = new NaptanMerger.LocalityList(mapControl);
 			
 			stopPanel.embedWidget(stopViewer);
+			matchPanel.embedWidget(matchList);
 
 			mapControl.events.register("stop_click", this, function (evt) {
 				if (currentStop) {
@@ -35,6 +39,7 @@
 
 				mapControl.selectFeature(evt.feature);
 				stopViewer.setStop(evt.feature);
+				matchList.getLocalities('localities?matches_with='+evt.feature.attributes.id);
 				currentStop = evt.feature;
 			});
 
@@ -46,6 +51,26 @@
 			mapControl.events.register("stop_mouseout", this, function(evt) {
 				mapControl.unhighlightFeature(evt.feature);
 				stopViewer.setStop(currentStop);
+			});
+
+			matchList.events.register('mouseover', this, function(evt) {
+				mapControl.highlightFeature(evt.feature);
+			});
+
+			matchList.events.register('mouseout', this, function(evt) {
+				mapControl.unhighlightFeature(evt.feature);
+			});
+
+			matchList.events.register('click', this, function(evt) {
+				if (currentStop) {
+					mapControl.unselectFeature(currentStop);
+				}
+
+				mapControl.unhighlightFeature(evt.feature);
+				mapControl.selectFeature(evt.feature);
+				stopViewer.setStop(evt.feature);
+				matchList.getLocalities('localities?matches_with='+evt.feature.attributes.id);
+				currentStop = evt.feature;
 			});
 		});
 
@@ -59,13 +84,18 @@
 	</ul>
 	<div id="map"></div>
 	<div id="stopPanel"></div>
+	<div id="matchPanel"></div>
 	<div id="mapKey">
 		<h2>Map Key</h2>
 		<dl>
-			<dt><img src="plain_nptg_locality.png"></dt>
-			<dd>Locality from the NPTG dataset<dd>
-			<dt><img src="plain_osm_locality.png"></dt>
-			<dd>Locality from OpenStreetMap<dd>
+			<dt><img src="plain_nptg_locality.png" alt="Blue marker"></dt>
+			<dd>Locality from the NPTG dataset with no counterpart in OSM</dd>
+			<dt><img src="plain_osm_locality.png" alt="Yellwo marker"></dt>
+			<dd>Locality from OpenStreetMap with no matching locality in NPTG</dd>
+			<dt><img src="matched_nptg_locality.png" alt="Grey marker"></dt>
+			<dd>Locality from NPTG which has been matched with a OSM locality</dd>
+			<dt><img src="matched_osm_locality.png" alt="Green marker"></dt>
+			<dd>Locality from OpenStreetMap which as been match with NPTG locality</dd>
 		</dl>
 	</div>
 </body>

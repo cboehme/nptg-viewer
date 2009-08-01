@@ -38,6 +38,7 @@ var jsFiles = new Array(
 	"NaptanMerger/PositionSelector.js",
 	"NaptanMerger/WaypointSelector.js",
 	"NaptanMerger/FeatureControl.js",
+	"NaptanMerger/LocalityList.js",
 	"NaptanMerger/ImportsFinished.js"
 );
 

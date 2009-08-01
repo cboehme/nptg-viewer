@@ -6,64 +6,65 @@ from datetime import datetime
 import sqlalchemy as sa
 from sqlalchemy import orm
 from sqlalchemy.orm.collections import column_mapped_collection
+import sqlalchemy.sql.expression as sql
 
 from novam.model import meta
 
 
-def init_model(engine, image_store, planet_timestamp_file):
+def init_model(engine, planet_timestamp_file):
 	"""Call me before using any of the tables or classes in the model"""
-	## Reflected tables must be defined and mapped here
-	#global reflected_table
-	#reflected_table = sa.Table("Reflected", meta.metadata, autoload=True,
-	#							autoload_with=engine)
-	#orm.mapper(Reflected, reflected_table)
 
-	global stops, tags, waypoints
+	global localities, tags
 
-	stops = sa.Table("Stops", meta.metadata, autoload=True, autoload_with=engine)
+	localities = sa.Table("Localities", meta.metadata, autoload=True, autoload_with=engine)
 	tags = sa.Table("Tags", meta.metadata, autoload=True, autoload_with=engine)
-	waypoints = sa.Table("Waypoints", meta.metadata, autoload=True, autoload_with=engine)
-	images = sa.Table("Images", meta.metadata, autoload=True, autoload_with=engine)
-	
-	orm.mapper(Stop, stops, properties={
+
+	# This alias makes it easier to define the *_count columns:
+	neighbours = localities.alias("neighbours")
+
+	# To distinguish if a stop is from OSM or from the NPTG dataset the sign of the
+	# osm_id is used. Since NPTG nodes are not in the OSM dataset they have negative
+	# ids while OSM uses positive ids.
+
+	orm.mapper(Locality, localities, properties={
 		"tags": orm.relation(Tag, collection_class=column_mapped_collection(tags.c.name), \
-				lazy=False, passive_deletes=True)
+				lazy=False, passive_deletes=True),
+		"duplicate_count": orm.column_property(sql.select(
+			[sql.func.count(neighbours.c.id)],
+			sql.and_(
+				sql.func.sign(localities.c.osm_id) == sql.func.sign(neighbours.c.osm_id),
+				localities.c.osm_id != neighbours.c.osm_id,
+				localities.c.name == neighbours.c.name,
+				sql.func.sqrt(
+					sql.func.pow(localities.c.lat - neighbours.c.lat, 2) +
+					sql.func.pow(localities.c.lon - neighbours.c.lon, 2)
+				) < 0.1
+			),
+		).label("duplicate_count")),
+		"match_count": orm.column_property(sql.select(
+			[sql.func.count(neighbours.c.id)],
+			sql.and_(
+				sql.func.sign(localities.c.osm_id) != sql.func.sign(neighbours.c.osm_id),
+				localities.c.name == neighbours.c.name,
+				sql.func.sqrt(
+					sql.func.pow(localities.c.lat - neighbours.c.lat, 2) +
+					sql.func.pow(localities.c.lon - neighbours.c.lon, 2)
+				) < 0.1
+			),
+		).label("match_count"))
 	})
 	orm.mapper(Tag, tags)
-	orm.mapper(Waypoint, waypoints)
-	orm.mapper(Image, images)
 
 	meta.session.configure(bind=engine)
 	meta.engine = engine
-
-	meta.image_store = image_store
 
 	meta.planet_timestamp = planet_timestamp_file
 	global planet_timestamp
 	planet_timestamp = _TimestampFile(meta.planet_timestamp)
 
-## Non-reflected tables may be defined and mapped at module level
-#foo_table = sa.Table("Foo", meta.metadata,
-#	 sa.Column("id", sa.types.Integer, primary_key=True),
-#	 sa.Column("bar", sa.types.String(255), nullable=False),
-#	 )
-#
-#class Foo(object):
-#	 pass
-#
-#orm.mapper(Foo, foo_table)
+localities = None
 
-
-## Classes for reflected tables may be defined here, but the table and
-## mapping itself must be done in the init_model function
-#reflected_table = None
-#
-#class Reflected(object):
-#	 pass
-
-stops = None
-
-class Stop(object):
+class Locality(object):
 	def __init__(self, lat, lon, osm_id=None, osm_version=None):
 			self.lat = lat
 			self.lon = lon
@@ -71,7 +72,7 @@ class Stop(object):
 			self.osm_version = osm_version
 
 	def __repr__(self):
-		return "Stop(id=%s, lat=%s, lon=%s, osm_id=%s)" % (self.id, self.lat, self.lon, self.osm_id)
+		return "Locality(id=%s, lat=%s, lon=%s, osm_id=%s)" % (self.id, self.lat, self.lon, self.osm_id)
 
 tags = None
 
@@ -81,39 +82,9 @@ class Tag(object):
 		self.value = value
 
 	def __repr__(self):
-		return "Tag(stop_id=%s, name=%s, value=%s)" % (self.stop_id, self.name, self.value)
+		return "Tag(locality_id=%s, name=%s, value=%s)" % (self.locality_id, self.name, self.value)
 
-waypoints = None
-
-class Waypoint(object):
-	def __init__(self, lat, lon, name=None):
-		self.lat = lat
-		self.lon = lon
-		self.name = name
-
-	def __repr__(self):
-		return "Waypoint(id=%s, lat=%s, lon=%s, name=%s)" % (self.id, self.lat, self.lon, self.name)
-
-images = None
-
-class Image(object):
-	def __init__(self, lat=None, lon=None):
-		self.lat = lat
-		self.lon = lon
-		self.file_id = unicode(uuid4())
-
-	def _get_file_path(self):
-		if not os.path.exists(meta.image_store):
-			os.makedirs(meta.image_store)
-		return os.path.join(meta.image_store, self.file_id)
-
-	file_path = property(_get_file_path)
-
-	def __repr__(self):
-		return "Image(id=%s, lat=%s, lon=%s, file_id=%s)" % (self.id, self.lat, self.lon, self.file_id)
-
-
-# Access planet timestamp
+# Wrapper around the planet timestamp file:
 class _TimestampFile:
 
 	FORMAT = "%Y-%m-%dT%H:%M:%SZ"

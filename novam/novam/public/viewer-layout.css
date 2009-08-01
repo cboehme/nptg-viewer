@@ -49,7 +49,22 @@ div.MapLoadIndicator
 	left: 65%;
 	top: 43px;
 	right: 10px;
-	bottom: 50%;
+	bottom: 70%;
+
+	margin: 0px;
+	padding: 0px;
+	border: none;
+
+	margin-left: 20px;
+}
+
+#matchPanel
+{
+	position: absolute;
+	left: 65%;
+	top: 30%;
+	right: 10px;
+	bottom: 250px;
 
 	margin: 0px;
 	padding: 0px;
@@ -62,9 +77,9 @@ div.MapLoadIndicator
 {
 	position: absolute;
 	left: 65%;
-	top: 50%;
 	right: 10px;
 	bottom: 10px;
+	height: 250px;
 
 	margin: 0px;
 	padding: 0px;
