@@ -202,10 +202,17 @@ class Updater(_TransactionHandling, ContentHandler, ErrorHandler):
 							)).enable_eagerloads(False).first()
 						if node:
 							self._begin()
+							# Save these and add them to the new version
+							# of the locality (the below):
+							temp_locality_hidden = node.hidden
+							temp_locality_comment = node.comment
 							session.execute(model.localities.delete().where(
 								model.localities.c.osm_id == attrs.getValue("id"))
 							)
 							self.locality_deleted = True
+						else:
+							temp_locality_hidden = None
+							temp_locality_comment = None
 
 					if self.mode in (self.__MODE_CREATE, self.__MODE_MODIFY):
 						lon, lat = float(attrs.getValue("lon")), float(attrs.getValue("lat"))
@@ -216,7 +223,8 @@ class Updater(_TransactionHandling, ContentHandler, ErrorHandler):
 							if not node:
 								self.current_locality = model.Locality(
 									attrs.getValue("lat"), attrs.getValue("lon"),
-									attrs.getValue("id"), attrs.getValue("version")
+									attrs.getValue("id"), attrs.getValue("version"),
+									None, temp_locality_hidden, temp_locality_comment
 								)
 								self._begin()
 								session.add(self.current_locality)

@@ -69,11 +69,14 @@ def init_model(engine, planet_timestamp_file):
 localities = None
 
 class Locality(object):
-	def __init__(self, lat, lon, osm_id=None, osm_version=None):
+	def __init__(self, lat, lon, osm_id=None, osm_version=None, name=None, hidden=None, comment=None):
 			self.lat = lat
 			self.lon = lon
 			self.osm_id = osm_id
 			self.osm_version = osm_version
+			self.name = name
+			self.hidden = hidden
+			self.comment = comment
 
 	def __repr__(self):
 		return "Locality(id=%s, lat=%s, lon=%s, osm_id=%s)" % (self.id, self.lat, self.lon, self.osm_id)
