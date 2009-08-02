@@ -78,7 +78,7 @@ class Importer(_TransactionHandling, ContentHandler, ErrorHandler):
 					key, val = attrs.getValue("k"), attrs.getValue("v")
 					self.current_locality.tags[key] = model.Tag(key, val)
 					self.is_locality = self.is_locality \
-						or (key == "source" and val == "nptg_import") \
+						or key == "NptgLocalityCode" \
 						or key == "place"
 					self.valid_path.append(True)
 				else:
@@ -236,7 +236,7 @@ class Updater(_TransactionHandling, ContentHandler, ErrorHandler):
 						key, val = attrs.getValue("k"), attrs.getValue("v")
 						self.current_locality.tags[key] = model.Tag(key, val)
 						self.is_locality = self.is_locality \
-							or (key == "source" and val == "nptg_import") \
+							or key == "NptgLocalityCode" \
 							or key == "place"
 					self.valid_path.append(True)
 
