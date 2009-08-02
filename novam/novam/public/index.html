@@ -106,7 +106,7 @@
 
 				mapControl.unhighlightFeature(evt.feature);
 				mapControl.selectFeature(evt.feature);
-				stopViewer.setLocality(evt.feature);
+				localityViewer.setLocality(evt.feature);
 				matchList.getLocalities('localities?matches_with='+evt.feature.attributes.id);
 				duplicateList.getLocalities('localities?duplicates_of='+evt.feature.attributes.id);
 				currentLocality = evt.feature;
