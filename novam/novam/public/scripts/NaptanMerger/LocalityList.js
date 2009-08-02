@@ -10,16 +10,18 @@ NaptanMerger.LocalityList = Class.create(NaptanMerger.Widget, {
 
 	events: null,
 
+	localities: null,
+
 	list: null,
 	
-	initialize: function(mapControl) {
+	initialize: function(mapControl, title) {
 		NaptanMerger.Widget.prototype.initialize.call(this);
 
 		this.mapControl = mapControl;
 		this.events = new OpenLayers.Events(this, null, this.EVENT_TYPES);
 
 		var caption = new Element('h2', {'class': 'StopSelector'});
-		caption.appendChild(Text('Localities'));
+		caption.appendChild(Text(title));
 
 		this.list = new Element('ol', {'class': 'StopSelector'});
 
@@ -47,6 +49,7 @@ NaptanMerger.LocalityList = Class.create(NaptanMerger.Widget, {
 	 * url - Retrieve the list of localities from this url.
 	 */
 	getLocalities: function(url) {
+		this._unmarkLocalities();
 		var request = OpenLayers.Request.GET({
 			url: url,
 			scope: this,
@@ -54,9 +57,28 @@ NaptanMerger.LocalityList = Class.create(NaptanMerger.Widget, {
 				json = new OpenLayers.Format.JSON();
 				data = json.read(request.responseText);
 				this.mapControl.addStops(data.localities);
+				this._markLocalities(data.localities);
 				this._createList(data.localities);
 			}
 		});
+	},
+
+	_markLocalities: function (localities) {
+		this.localities = localities;
+		if (localities) {
+			this.localities.each(function(locality) {
+				this.mapControl.markFeature(this.mapControl.findStop(locality.id));
+			}, this);
+		}
+	},
+
+	_unmarkLocalities: function () {
+		if (this.localities) {
+			this.localities.each(function(locality) {
+				this.mapControl.unmarkFeature(this.mapControl.findStop(locality.id));
+			}, this);
+			this.localities = null;
+		}
 	},
 
 	/**

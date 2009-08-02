@@ -39,7 +39,7 @@ class _TransactionHandling(object):
 	
 
 class Importer(_TransactionHandling, ContentHandler, ErrorHandler):
-	"""Import all bus stops from a planet file into the database
+	"""Import all localities from a planet file into the database
 	"""
 
 	def __init__(self, delete=True):
@@ -51,8 +51,8 @@ class Importer(_TransactionHandling, ContentHandler, ErrorHandler):
 	
 	def startDocument(self):
 		self.valid_path = [True]
-		self.current_stop = None
-		self.is_bus_stop = False
+		self.current_locality = None
+		self.is_locality = False
 		self._begin()
 
 	def endDocument(self):
@@ -63,21 +63,21 @@ class Importer(_TransactionHandling, ContentHandler, ErrorHandler):
 			if self.valid_path[-1]:
 				if len(self.valid_path) == 1 and name == "osm":
 					if self.delete:
-						session.execute(model.stops.delete())
+						session.execute(model.localities.delete())
 					self.valid_path.append(True)
 				elif len(self.valid_path) == 2 and name == "node":
-					self.current_stop = model.Stop(
+					self.current_locality = model.Locality(
 						attrs.getValue("lat"), attrs.getValue("lon"),
 						attrs.getValue("id"), attrs.getValue("version")
 					)
 					self._begin()
-					session.add(self.current_stop)
-					self.is_bus_stop = False
+					session.add(self.current_locality)
+					self.is_locality = False
 					self.valid_path.append(True)
 				elif len(self.valid_path) == 3 and name == "tag":
 					key, val = attrs.getValue("k"), attrs.getValue("v")
-					self.current_stop.tags[key] = model.Tag(key, val)
-					self.is_bus_stop = self.is_bus_stop \
+					self.current_locality.tags[key] = model.Tag(key, val)
+					self.is_locality = self.is_locality \
 						or (key == "source" and val == "nptg_import") \
 						or key == "place"
 					self.valid_path.append(True)
@@ -92,11 +92,15 @@ class Importer(_TransactionHandling, ContentHandler, ErrorHandler):
 	def endElement(self, name):
 		try:
 			if self.valid_path[-1] and name == "node":
-				if self.is_bus_stop:
+				if self.is_locality:
+					if "name" in self.current_locality.tags:
+						self.current_locality.name = self.current_locality.tags["name"]
+					elif "LocalityName" in self.current_locality.tags:
+						self.current_locality.name = self.current_locality.tags["LocalityName"]
 					self._commit()
 				else:
 					self._rollback()
-				self.current_stop = None
+				self.current_locality = None
 			del self.valid_path[-1]
 		except:
 			self._rollback_all()
@@ -158,9 +162,9 @@ class Updater(_TransactionHandling, ContentHandler, ErrorHandler):
 	def startDocument(self):
 		self.valid_path = [True]
 		self.mode = self.__MODE_NONE
-		self.current_stop = None
-		self.is_bus_stop = False
-		self.stop_deleted = False
+		self.current_locality = None
+		self.is_locality = False
+		self.locality_deleted = False
 		self._begin()
 
 	def endDocument(self):
@@ -185,47 +189,47 @@ class Updater(_TransactionHandling, ContentHandler, ErrorHandler):
 				elif len(self.valid_path) == 3 and name == "node":
 					if self.mode == self.__MODE_DELETE:
 						self._begin()
-						session.execute(model.stops.delete().where(sql.and_(
-							model.stops.c.osm_id == attrs.getValue("id"),
-							model.stops.c.osm_version == int(attrs.getValue("version")) - 1
+						session.execute(model.localities.delete().where(sql.and_(
+							model.localities.c.osm_id == attrs.getValue("id"),
+							model.localities.c.osm_version == int(attrs.getValue("version")) - 1
 						)))
-						self.stop_deleted = True
+						self.locality_deleted = True
 
 					if self.mode == self.__MODE_MODIFY:
-						node = session.query(model.Stop).filter(sql.and_(
-							model.stops.c.osm_id == attrs.getValue("id"),
-							model.stops.c.osm_version < attrs.getValue("version")
+						node = session.query(model.Locality).filter(sql.and_(
+							model.localities.c.osm_id == attrs.getValue("id"),
+							model.localities.c.osm_version < attrs.getValue("version")
 							)).enable_eagerloads(False).first()
 						if node:
 							self._begin()
-							session.execute(model.stops.delete().where(
-								model.stops.c.osm_id == attrs.getValue("id"))
+							session.execute(model.localities.delete().where(
+								model.localities.c.osm_id == attrs.getValue("id"))
 							)
-							self.stop_deleted = True
+							self.locality_deleted = True
 
 					if self.mode in (self.__MODE_CREATE, self.__MODE_MODIFY):
 						lon, lat = float(attrs.getValue("lon")), float(attrs.getValue("lat"))
 						if point_in_polygon(lon, lat, self.area):
-							node = session.query(model.Stop).filter_by(
+							node = session.query(model.Locality).filter_by(
 								osm_id=attrs.getValue("id")
 							).enable_eagerloads(False).first()
 							if not node:
-								self.current_stop = model.Stop(
+								self.current_locality = model.Locality(
 									attrs.getValue("lat"), attrs.getValue("lon"),
 									attrs.getValue("id"), attrs.getValue("version")
 								)
 								self._begin()
-								session.add(self.current_stop)
-								self.is_bus_stop = False
+								session.add(self.current_locality)
+								self.is_locality = False
 					self.valid_path.append(True)
 
 				elif len(self.valid_path) == 4 and name == "tag":
-					if self.current_stop:
+					if self.current_locality:
 						key, val = attrs.getValue("k"), attrs.getValue("v")
-						self.current_stop.tags[key] = model.Tag(key, val)
-						self.is_bus_stop = self.is_bus_stop \
-							or (key == "naptan:AtcoCode" \
-							or (key == "highway" and val == "bus_stop"))
+						self.current_locality.tags[key] = model.Tag(key, val)
+						self.is_locality = self.is_locality \
+							or (key == "source" and val == "nptg_import") \
+							or key == "place"
 					self.valid_path.append(True)
 
 				else:
@@ -242,15 +246,19 @@ class Updater(_TransactionHandling, ContentHandler, ErrorHandler):
 				if name in ("create", "modify", "delete"):
 					self.mode = self.__MODE_NONE
 				elif name == "node":
-					if self.current_stop:
-						if self.is_bus_stop:
+					if self.current_locality:
+						if self.is_locality:
+							if "name" in self.current_locality.tags:
+								self.current_locality.name = self.current_locality.tags["name"]
+							elif "LocalityName" in self.current_locality.tags:
+								self.current_locality.name = self.current_locality.tags["LocalityName"]
 							self._commit()
 						else:
 							self._rollback()
-					if self.stop_deleted:
+					if self.locality_deleted:
 						self._commit()
-						self.stop_deleted = False
-					self.current_stop = None
+						self.locality_deleted = False
+					self.current_locality = None
 			del self.valid_path[-1]
 		except:
 			self._rollback_all()

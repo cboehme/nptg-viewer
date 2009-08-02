@@ -18,19 +18,23 @@
 		var mapControl = null;
 		var stopViewer = null;
 		var matchList = null;
+		var duplicateList = null;
 
 		var currentStop = null;
 
 		runApp(function () {
 			var stopPanel = new NaptanMerger.WidgetContainer('stopPanel');
 			var matchPanel = new NaptanMerger.WidgetContainer('matchPanel');
+			var duplicatePanel = new NaptanMerger.WidgetContainer('duplicatePanel');
 
 			mapControl = new NaptanMerger.MapControl('map');
 			stopViewer = new NaptanMerger.StopViewer();
-			matchList = new NaptanMerger.LocalityList(mapControl);
+			matchList = new NaptanMerger.LocalityList(mapControl, 'Matching Localities');
+			duplicateList = new NaptanMerger.LocalityList(mapControl, 'Duplicate Localities');
 			
 			stopPanel.embedWidget(stopViewer);
 			matchPanel.embedWidget(matchList);
+			duplicatePanel.embedWidget(duplicateList);
 
 			mapControl.events.register("stop_click", this, function (evt) {
 				if (currentStop) {
@@ -40,25 +44,34 @@
 				mapControl.selectFeature(evt.feature);
 				stopViewer.setStop(evt.feature);
 				matchList.getLocalities('localities?matches_with='+evt.feature.attributes.id);
+				duplicateList.getLocalities('localities?duplicates_of='+evt.feature.attributes.id);
 				currentStop = evt.feature;
 			});
 
 			mapControl.events.register("stop_mouseover", this, function(evt) {
 				mapControl.highlightFeature(evt.feature);
+				matchList.highlightLocality(evt.feature);
+				duplicateList.highlightLocality(evt.feature);
 				stopViewer.setStop(evt.feature);
 			});
 
 			mapControl.events.register("stop_mouseout", this, function(evt) {
 				mapControl.unhighlightFeature(evt.feature);
+				matchList.unhighlightLocality(evt.feature);
+				duplicateList.unhighlightLocality(evt.feature);
 				stopViewer.setStop(currentStop);
 			});
 
 			matchList.events.register('mouseover', this, function(evt) {
+				matchList.highlightLocality(evt.feature);
 				mapControl.highlightFeature(evt.feature);
+				stopViewer.setStop(evt.feature);
 			});
 
 			matchList.events.register('mouseout', this, function(evt) {
+				matchList.unhighlightLocality(evt.feature);
 				mapControl.unhighlightFeature(evt.feature);
+				stopViewer.setStop(currentStop);
 			});
 
 			matchList.events.register('click', this, function(evt) {
@@ -70,6 +83,32 @@
 				mapControl.selectFeature(evt.feature);
 				stopViewer.setStop(evt.feature);
 				matchList.getLocalities('localities?matches_with='+evt.feature.attributes.id);
+				duplicateList.getLocalities('localities?duplicates_of='+evt.feature.attributes.id);
+				currentStop = evt.feature;
+			});
+
+			duplicateList.events.register('mouseover', this, function(evt) {
+				duplicateList.highlightLocality(evt.feature);
+				mapControl.highlightFeature(evt.feature);
+				stopViewer.setStop(evt.feature);
+			});
+
+			duplicateList.events.register('mouseout', this, function(evt) {
+				duplicateList.unhighlightLocality(evt.feature);
+				mapControl.unhighlightFeature(evt.feature);
+				stopViewer.setStop(currentStop);
+			});
+
+			duplicateList.events.register('click', this, function(evt) {
+				if (currentStop) {
+					mapControl.unselectFeature(currentStop);
+				}
+
+				mapControl.unhighlightFeature(evt.feature);
+				mapControl.selectFeature(evt.feature);
+				stopViewer.setStop(evt.feature);
+				matchList.getLocalities('localities?matches_with='+evt.feature.attributes.id);
+				duplicateList.getLocalities('localities?duplicates_of='+evt.feature.attributes.id);
 				currentStop = evt.feature;
 			});
 		});
@@ -85,6 +124,7 @@
 	<div id="map"></div>
 	<div id="stopPanel"></div>
 	<div id="matchPanel"></div>
+	<div id="duplicatePanel"></div>
 	<div id="mapKey">
 		<h2>Map Key</h2>
 		<dl>

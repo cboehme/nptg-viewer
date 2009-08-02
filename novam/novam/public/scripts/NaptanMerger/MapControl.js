@@ -74,11 +74,13 @@ NaptanMerger.MapControl = Class.create({
 				graphicXOffset: -11,
 				graphicYOffset: -11,
 				externalGraphic: '${type}_highlighted.png',
-				cursor: 'pointer'
+				cursor: 'pointer',
+				graphicOpacity: 1.0
 			}),
 			'selected': new OpenLayers.Style({
 				externalGraphic: '${type}_selected.png',
-				cursor: ''
+				cursor: '',
+				graphicOpacity: 1.0
 			}),
 			'selected_highlighted': new OpenLayers.Style({
 				graphicHeight: 22,
@@ -86,11 +88,13 @@ NaptanMerger.MapControl = Class.create({
 				graphicXOffset: -11,
 				graphicYOffset: -11,
 				externalGraphic: '${type}_selected_highlighted.png',
-				cursor: ''
+				cursor: '',
+				graphicOpacity: 1.0
 			}),
 			'marked': new OpenLayers.Style({
 				externalGraphic: '${type}_marked.png',
-				cursor: ''
+				cursor: 'pointer',
+				graphicOpacity: 1.0
 			}),
 			'marked_highlighted': new OpenLayers.Style({
 				graphicHeight: 22,
@@ -98,11 +102,13 @@ NaptanMerger.MapControl = Class.create({
 				graphicXOffset: -11,
 				graphicYOffset: -11,
 				externalGraphic: '${type}_marked_highlighted.png',
-				cursor: ''
+				cursor: 'pointer',
+				graphicOpacity: 1.0
 			}),
 			'marked_selected': new OpenLayers.Style({
 				externalGraphic: '${type}_marked_selected.png',
-				cursor: ''
+				cursor: '',
+				graphicOpacity: 1.0
 			}),
 			'marked_selected_highlighted': new OpenLayers.Style({
 				graphicHeight: 22,
@@ -110,13 +116,21 @@ NaptanMerger.MapControl = Class.create({
 				graphicXOffset: -11,
 				graphicYOffset: -11,
 				externalGraphic: '${type}_marked_selected_highlighted.png',
-				cursor: ''
-			}),
-			'deleted': new OpenLayers.Style({
-				externalGraphic: '${type}_deleted.png',
-				cursor: ''
+				cursor: '',
+				graphicOpacity: 1.0
 			})
 		});
+		var opacityLookup = {
+			"deleted_nptg_locality": {graphicOpacity: 0.4},
+			"deleted_osm_locality": {graphicOpacity: 0.4},
+			"matched_nptg_locality": {graphicOpacity: 0.6},
+			"matched_osm_locality": {},
+			"plain_nptg_locality": {},
+			"plain_osm_locality": {},
+			"error_nptg_locality": {},
+			"error_osm_locality": {}
+		};
+		styleMap.addUniqueValueRules("default", "type", opacityLookup);
 
 		// Create the marker layer:
 		this.markerLayer = new OpenLayers.Layer.Vector('Markers', {styleMap: styleMap});
@@ -201,68 +215,80 @@ NaptanMerger.MapControl = Class.create({
 	},
 	
 	highlightFeature: function (feature) {
-		if (feature.renderIntent == 'default')
-			feature.renderIntent = 'highlighted';
-		else if (!feature.renderIntent.endsWith('highlighted'))
-			feature.renderIntent += '_highlighted';
+		if (feature) {
+			if (feature.renderIntent == 'default')
+				feature.renderIntent = 'highlighted';
+			else if (!feature.renderIntent.endsWith('highlighted'))
+				feature.renderIntent += '_highlighted';
 
-		this.markerLayer.drawFeature(feature);
+			this.markerLayer.drawFeature(feature);
+		}
 	},
 
 	unhighlightFeature: function (feature) {
-		if (feature.renderIntent == 'highlighted')
-			feature.renderIntent = 'default';
-		else
-			feature.renderIntent = feature.renderIntent.replace(/_highlighted/, '');
+		if (feature) {
+			if (feature.renderIntent == 'highlighted')
+				feature.renderIntent = 'default';
+			else
+				feature.renderIntent = feature.renderIntent.replace(/_highlighted/, '');
 
-		this.markerLayer.drawFeature(feature);
+			this.markerLayer.drawFeature(feature);
+		}
 	},
 
 	selectFeature: function (feature) {
-		if (feature.renderIntent.endsWith('highlighted'))
-		{
-			if (feature.renderIntent.startsWith('marked'))
-				feature.renderIntent = 'marked_selected_highlighted';
+		if (feature) {
+			if (feature.renderIntent.endsWith('highlighted'))
+			{
+				if (feature.renderIntent.startsWith('marked'))
+					feature.renderIntent = 'marked_selected_highlighted';
+				else
+					feature.renderIntent = 'selected_highlighted';
+			}
 			else
-				feature.renderIntent = 'selected_highlighted';
-		}
-		else
-		{
-			if (feature.renderIntent.startsWith('marked'))
-				feature.renderIntent = 'marked_selected';
-			else
-				feature.renderIntent = 'selected';
-		}
+			{
+				if (feature.renderIntent.startsWith('marked'))
+					feature.renderIntent = 'marked_selected';
+				else
+					feature.renderIntent = 'selected';
+			}
 
-		this.markerLayer.drawFeature(feature);
+			this.markerLayer.drawFeature(feature);
+		}
 	},
 
 	unselectFeature: function (feature) {
-		if (feature.renderIntent == 'selected')
-			feature.renderIntent = 'default';
-		else
-		{
-			feature.renderIntent = feature.renderIntent.replace(/_selected/, '');
-			feature.renderIntent = feature.renderIntent.replace(/selected_/, '');
+		if (feature) {
+			if (feature.renderIntent == 'selected')
+				feature.renderIntent = 'default';
+			else
+			{
+				feature.renderIntent = feature.renderIntent.replace(/_selected/, '');
+				feature.renderIntent = feature.renderIntent.replace(/selected_/, '');
+			}
+			this.markerLayer.drawFeature(feature);
 		}
-		this.markerLayer.drawFeature(feature);
 	},
 
 	markFeature: function (feature) {
-		if (feature.renderIntent == 'default')
-			feature.renderIntent = 'marked';
-		else if (!feature.renderIntent.startsWith('marked'))
-			feature.renderIntent = 'marked_' + feature.renderIntent;
-		this.markerLayer.drawFeature(feature);
+		if (feature) {
+			if (feature.renderIntent == 'default')
+				feature.renderIntent = 'marked';
+			else if (!feature.renderIntent.startsWith('marked'))
+				feature.renderIntent = 'marked_' + feature.renderIntent;
+			this.markerLayer.drawFeature(feature);
+		}
 	},
 
 	unmarkFeature: function (feature) {
-		if (feature.renderIntent == 'marked')
-			feature.renderIntent = 'default';
-		else
-			feature.renderIntent = feature.renderIntent.replace(/marked_/, '');
+		if (feature) {
+			if (feature.renderIntent == 'marked')
+				feature.renderIntent = 'default';
+			else
+				feature.renderIntent = feature.renderIntent.replace(/marked_/, '');
 
-		this.markerLayer.drawFeature(feature);
+			this.markerLayer.drawFeature(feature);
+		}
 	},
 
 	activateDragging: function (feature) {
@@ -333,12 +359,37 @@ NaptanMerger.MapControl = Class.create({
 			var position = new OpenLayers.Geometry.Point(stop.lon, stop.lat);
 			position = position.transform(NaptanMerger.EPSG4326, NaptanMerger.EPSG900913);
 
-			stop.tags['duplicate_count'] = stop.duplicate_count;
-			stop.tags['match_count'] = stop.match_count;
-			if ('place' in stop.tags && stop.match_count == 0) {
+			stop.tags['id'] = stop.id;
+			stop.tags['osm_id'] = stop.osm_id;
+			stop.tags['osm_version'] = stop.osm_version;
+
+			if ('place' in stop.tags && stop.hidden) {
+				stop.type = 'deleted_osm_locality';
+			}
+			else if('LocalityName' in stop.tags && stop.hidden) {
+				stop.type = 'deleted_nptg_locality';
+			}
+			else if ('place' in stop.tags && stop.match_count > 1) {
+				stop.type = 'error_osm_locality';
+			}
+			else if ('place' in stop.tags && stop.duplicate_count > 0 ) {
+				stop.type = 'error_osm_locality';
+			}
+			else if('place' in stop.tags && (
+				[
+					"city", "town", "municipality", "village", "hamlet", 
+					"suburb", "island", "locality", "farm"
+				].indexOf(stop.tags['place']) < 0 
+				|| !('name' in stop.tags))) {
+				stop.type = 'error_osm_locality';
+			}
+			else if('LocalityName' in stop.tags && stop.match_count > 1) {
+				stop.type = 'error_nptg_locality';
+			}
+			else if ('place' in stop.tags && stop.match_count == 0) {
 				stop.type = 'plain_osm_locality';
 			}
-			else if ('place' in stop.tags && stop.match_count > 0) {
+			else if ('place' in stop.tags && stop.match_count == 1) {
 				stop.type = 'matched_osm_locality';
 			}
 			else if ('LocalityName' in stop.tags && stop.match_count == 0) {
@@ -348,7 +399,7 @@ NaptanMerger.MapControl = Class.create({
 				stop.type = 'matched_nptg_locality';
 			}
 			else {
-				stop.type = 'plain_osm_locality';
+				stop.type = ''; // This should never be called
 			}
 
 			newFeatures.push(new OpenLayers.Feature.Vector(position, stop));

@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from paste.script.command import Command
+from paste.script.command import Command, BadCommand
 from paste.deploy import appconfig
 from pylons import config
 import logging

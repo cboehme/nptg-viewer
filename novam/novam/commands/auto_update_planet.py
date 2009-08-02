@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from paste.script.command import Command
+from paste.script.command import Command, BadCommand
 from paste.deploy import appconfig
 from pylons import config
 from urlparse import urljoin

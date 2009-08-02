@@ -32,6 +32,8 @@ def init_model(engine, planet_timestamp_file):
 		"duplicate_count": orm.column_property(sql.select(
 			[sql.func.count(neighbours.c.id)],
 			sql.and_(
+				localities.c.hidden == None,
+				neighbours.c.hidden == None,
 				sql.func.sign(localities.c.osm_id) == sql.func.sign(neighbours.c.osm_id),
 				localities.c.osm_id != neighbours.c.osm_id,
 				localities.c.name == neighbours.c.name,
@@ -44,6 +46,8 @@ def init_model(engine, planet_timestamp_file):
 		"match_count": orm.column_property(sql.select(
 			[sql.func.count(neighbours.c.id)],
 			sql.and_(
+				localities.c.hidden == None,
+				neighbours.c.hidden == None,
 				sql.func.sign(localities.c.osm_id) != sql.func.sign(neighbours.c.osm_id),
 				localities.c.name == neighbours.c.name,
 				sql.func.sqrt(

@@ -5,6 +5,8 @@ CREATE TABLE Localities (
 	osm_id BIGINT SIGNED,
 	osm_version BIGINT UNSIGNED,
 	name VARCHAR(255),
+	hidden DATETIME DEFAULT NULL,
+	comment VARCHAR(255) DEFAULT NULL,
 	PRIMARY KEY (id),
 	INDEX (lat, lon),
 	INDEX (osm_id, osm_version),
