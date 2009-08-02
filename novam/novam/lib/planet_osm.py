@@ -76,7 +76,6 @@ class Importer(_TransactionHandling, ContentHandler, ErrorHandler):
 					self.valid_path.append(True)
 				elif len(self.valid_path) == 3 and name == "tag":
 					key, val = attrs.getValue("k"), attrs.getValue("v")
-					print key+":", repr(val), type(val)
 					self.current_locality.tags[key] = model.Tag(key, val)
 					self.is_locality = self.is_locality \
 						or (key == "source" and val == "nptg_import") \
