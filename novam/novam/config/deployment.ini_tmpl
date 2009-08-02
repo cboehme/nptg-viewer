@@ -32,6 +32,7 @@ app_instance_uuid = ${app_instance_uuid}
 
 # SQLAlchemy database URL
 sqlalchemy.url = mysql://
+sqlalchemy.convert_unicode = true
 
 # File containing the planet timestamp:
 planet_timestamp = %(here)s/planet-timestamp.txt

@@ -1,26 +1,26 @@
 /**
- * Class: NaptanMerger.StopViewer
- * A widget to show a bus stop and allow merging it.
+ * Class: NaptanMerger.LocalityViewer
+ * A widget to show a locality and allow to hide/unhide it.
  */
-NaptanMerger.StopViewer = Class.create(NaptanMerger.Widget, {
+NaptanMerger.LocalityViewer = Class.create(NaptanMerger.Widget, {
 	
 	list: null,
 
 	initialize: function() {
 		NaptanMerger.Widget.prototype.initialize.call(this);
 
-		var caption = new Element('h2', {'class': 'StopViewer'});
+		var caption = new Element('h2', {'class': 'LocalityViewer'});
 		caption.appendChild(Text('Locality'));
 
-		this.list = new Element('dl', {'class': 'StopViewer'});
+		this.list = new Element('dl', {'class': 'LocalityViewer'});
 
 		this.container.appendChild(caption);
 		this.container.appendChild(this.list);
 
-		this.setStop(null);
+		this.setLocality(null);
 	},
 
-	setStop: function(feature) {
+	setLocality: function(feature) {
 
 		function appendItem(key, value) {
 			var dt = new Element('dt');

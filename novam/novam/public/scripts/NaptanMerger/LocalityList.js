@@ -20,10 +20,10 @@ NaptanMerger.LocalityList = Class.create(NaptanMerger.Widget, {
 		this.mapControl = mapControl;
 		this.events = new OpenLayers.Events(this, null, this.EVENT_TYPES);
 
-		var caption = new Element('h2', {'class': 'StopSelector'});
+		var caption = new Element('h2', {'class': 'LocalityList'});
 		caption.appendChild(Text(title));
 
-		this.list = new Element('ol', {'class': 'StopSelector'});
+		this.list = new Element('ol', {'class': 'LocalityList'});
 
 		this.container.appendChild(caption);
 		this.container.appendChild(this.list);
