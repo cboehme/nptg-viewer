@@ -76,6 +76,7 @@ class Importer(_TransactionHandling, ContentHandler, ErrorHandler):
 					self.valid_path.append(True)
 				elif len(self.valid_path) == 3 and name == "tag":
 					key, val = attrs.getValue("k"), attrs.getValue("v")
+					print key+":", repr(val), type(val)
 					self.current_locality.tags[key] = model.Tag(key, val)
 					self.is_locality = self.is_locality \
 						or (key == "source" and val == "nptg_import") \
@@ -94,9 +95,9 @@ class Importer(_TransactionHandling, ContentHandler, ErrorHandler):
 			if self.valid_path[-1] and name == "node":
 				if self.is_locality:
 					if "name" in self.current_locality.tags:
-						self.current_locality.name = self.current_locality.tags["name"]
+						self.current_locality.name = self.current_locality.tags["name"].value
 					elif "LocalityName" in self.current_locality.tags:
-						self.current_locality.name = self.current_locality.tags["LocalityName"]
+						self.current_locality.name = self.current_locality.tags["LocalityName"].value
 					self._commit()
 				else:
 					self._rollback()
@@ -249,9 +250,9 @@ class Updater(_TransactionHandling, ContentHandler, ErrorHandler):
 					if self.current_locality:
 						if self.is_locality:
 							if "name" in self.current_locality.tags:
-								self.current_locality.name = self.current_locality.tags["name"]
+								self.current_locality.name = self.current_locality.tags["name"].value
 							elif "LocalityName" in self.current_locality.tags:
-								self.current_locality.name = self.current_locality.tags["LocalityName"]
+								self.current_locality.name = self.current_locality.tags["LocalityName"].value
 							self._commit()
 						else:
 							self._rollback()

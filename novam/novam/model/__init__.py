@@ -22,7 +22,7 @@ def init_model(engine, planet_timestamp_file):
 	# This alias makes it easier to define the *_count columns:
 	neighbours = localities.alias("neighbours")
 
-	# To distinguish if a stop is from OSM or from the NPTG dataset the sign of the
+	# To distinguish if a locality is from OSM or from the NPTG dataset the sign of the
 	# osm_id is used. Since NPTG nodes are not in the OSM dataset they have negative
 	# ids while OSM uses positive ids.
 
