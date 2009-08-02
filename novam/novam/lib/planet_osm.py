@@ -187,6 +187,9 @@ class Updater(_TransactionHandling, ContentHandler, ErrorHandler):
 					self.valid_path.append(True)
 
 				elif len(self.valid_path) == 3 and name == "node":
+					temp_locality_hidden = None
+					temp_locality_comment = None
+
 					if self.mode == self.__MODE_DELETE:
 						self._begin()
 						session.execute(model.localities.delete().where(sql.and_(
@@ -210,9 +213,6 @@ class Updater(_TransactionHandling, ContentHandler, ErrorHandler):
 								model.localities.c.osm_id == attrs.getValue("id"))
 							)
 							self.locality_deleted = True
-						else:
-							temp_locality_hidden = None
-							temp_locality_comment = None
 
 					if self.mode in (self.__MODE_CREATE, self.__MODE_MODIFY):
 						lon, lat = float(attrs.getValue("lon")), float(attrs.getValue("lat"))
