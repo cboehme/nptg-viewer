@@ -1,40 +1,36 @@
-/** 
- * Constant: EPSG4326
- * Projection used by the server for all markers.
- */
-NaptanMerger.EPSG4326 = new OpenLayers.Projection("EPSG:4326");
-
-/**
- * Constant: EPSG900913
- * Display projection used by the map.
- */
-NaptanMerger.EPSG900913 = new OpenLayers.Projection("EPSG:900913");
-
 /**
  * Class: NaptanMerger.MapControl
  */
 NaptanMerger.MapControl = Class.create({
 
+	EPSG4326: new OpenLayers.Projection("EPSG:4326"),
+	EPSG900913: new OpenLayers.Projection("EPSG:900913"),
+
+	HIGHLIGHTED: "_highlighted",
+	UNHIGHLIGHTED: "",
+	SELECTED: "_selected",
+	UNSELECTED: "",
+	MARKED: "_marked",
+	UNMARKED: "",
+
+	model: null,
 	map: null,
-	markerLayer: null,
-	featureControl: null,
-	loadIndicator: null,
+	marker_layer: null,
+	feature_control: null,
+	load_indicator: null,
 
-	EVENT_TYPES: ['stop_click', 'stop_clickout', 'stop_mouseover', 'stop_mouseout'],
+	initialize: function(container, model) {
 
-	events: null,
-
-	/**
-	 * Constructor: NaptanMerger.Map
-	 * Constructor for a new NaptanMerger.Map instance.
-	 *
-	 * Parameters:
-	 * container - {string} Id of an element on your page that will contain
-	 *     the map.
-	 */
-	initialize: function(container) {
-
-		this.events = new OpenLayers.Events(this, null, this.EVENT_TYPES);
+		this.model = model;
+		this.model.events.register("locality_added", this, this.locality_added);
+		this.model.events.register("locality_removed", this, this.locality_removed);
+		this.model.events.register("locality_updated", this, this.locality_updated);
+		this.model.events.register("locality_selected", this, this.locality_selected);
+		this.model.events.register("locality_unselected", this, this.locality_unselected);
+		this.model.events.register("locality_highlighted", this, this.locality_highlighted);
+		this.model.events.register("locality_unhighlighted", this, this.locality_unhighlighted);
+		this.model.events.register("locality_marked", this, this.locality_marked);
+		this.model.events.register("locality_unmarked", this, this.locality_unmarked);
 
 		this.map = new OpenLayers.Map(container, {
 			controls: [
@@ -42,14 +38,15 @@ NaptanMerger.MapControl = Class.create({
 				new OpenLayers.Control.PanZoomBar()
 			],
 			units: 'm',
-			projection: NaptanMerger.EPSG900913,
-			displayProjection: NaptanMerger.EPSG4326
+			projection: this.EPSG900913,
+			displayProjection: this.EPSG4326
 		});
 
-		this.loadIndicator = new Element("div", {"class": "MapLoadIndicator"});
-		this.loadIndicator.appendChild(Text("Loading ..."));
-		$(container).appendChild(this.loadIndicator);
-		this.loadIndicator.hide();
+		// Create load indicator:
+		this.load_indicator = new Element("div", {"class": "MapLoadIndicator"});
+		this.load_indicator.appendChild(Text("Loading ..."));
+		$(container).appendChild(this.load_indicator);
+		this.load_indicator.hide();
 		
 		// Create a mapnik base layer:
 		var mapnik = new OpenLayers.Layer.OSM.Mapnik("OpenStreetMap", {
@@ -65,64 +62,14 @@ NaptanMerger.MapControl = Class.create({
 				graphicWidth: 16,
 				graphicXOffset: -8,
 				graphicYOffset: -8,
-				externalGraphic: '${type}.png',
+				externalGraphic: '${type}${selected}${marked}${highlighted}.png',
 				cursor: 'pointer'
-			}),
-			'highlighted': new OpenLayers.Style({
-				graphicHeight: 22,
-				graphicWidth: 22,
-				graphicXOffset: -11,
-				graphicYOffset: -11,
-				externalGraphic: '${type}_highlighted.png',
-				cursor: 'pointer',
-				graphicOpacity: 1.0
-			}),
-			'selected': new OpenLayers.Style({
-				externalGraphic: '${type}_selected.png',
-				cursor: '',
-				graphicOpacity: 1.0
-			}),
-			'selected_highlighted': new OpenLayers.Style({
-				graphicHeight: 22,
-				graphicWidth: 22,
-				graphicXOffset: -11,
-				graphicYOffset: -11,
-				externalGraphic: '${type}_selected_highlighted.png',
-				cursor: '',
-				graphicOpacity: 1.0
-			}),
-			'marked': new OpenLayers.Style({
-				externalGraphic: '${type}_marked.png',
-				cursor: 'pointer',
-				graphicOpacity: 1.0
-			}),
-			'marked_highlighted': new OpenLayers.Style({
-				graphicHeight: 22,
-				graphicWidth: 22,
-				graphicXOffset: -11,
-				graphicYOffset: -11,
-				externalGraphic: '${type}_marked_highlighted.png',
-				cursor: 'pointer',
-				graphicOpacity: 1.0
-			}),
-			'marked_selected': new OpenLayers.Style({
-				externalGraphic: '${type}_marked_selected.png',
-				cursor: '',
-				graphicOpacity: 1.0
-			}),
-			'marked_selected_highlighted': new OpenLayers.Style({
-				graphicHeight: 22,
-				graphicWidth: 22,
-				graphicXOffset: -11,
-				graphicYOffset: -11,
-				externalGraphic: '${type}_marked_selected_highlighted.png',
-				cursor: '',
-				graphicOpacity: 1.0
 			})
 		});
+
 		var opacityLookup = {
-			"deleted_nptg_locality": {graphicOpacity: 0.4},
-			"deleted_osm_locality": {graphicOpacity: 0.4},
+			"deleted_nptg_locality": {graphicOpacity: 0.6},
+			"deleted_osm_locality": {graphicOpacity: 0.6},
 			"matched_nptg_locality": {graphicOpacity: 0.6},
 			"matched_osm_locality": {},
 			"plain_nptg_locality": {},
@@ -132,49 +79,50 @@ NaptanMerger.MapControl = Class.create({
 		};
 		styleMap.addUniqueValueRules("default", "type", opacityLookup);
 
-		// Create the marker layer:
-		this.markerLayer = new OpenLayers.Layer.Vector('Markers', {styleMap: styleMap});
-		this.map.addLayer(this.markerLayer);
+		var sizeLookup = {
+			"_highlighted": {
+				graphicHeight: 22,
+				graphicWidth: 22,
+				graphicXOffset: -11,
+				graphicYOffset: -11,
+			},
+			"": {}
+		};
+		styleMap.addUniqueValueRules("default", "highlighted", sizeLookup);
 
-		this.map.events.register('moveend', this, this.saveMapLocation);
-		this.map.events.register('moveend', this, this.getStops);
+		var pointerLookup = {
+			"_selected": {cursor: ''},
+			"": {}
+		};
+		styleMap.addUniqueValueRules("default", "selected", pointerLookup);
+
+		// Create the marker layer:
+		this.marker_layer = new OpenLayers.Layer.Vector('Markers', {styleMap: styleMap});
+		this.map.addLayer(this.marker_layer);
+
+		this.map.events.register('moveend', this, this.save_map_location);
+		this.map.events.register('moveend', this, this.get_localities);
 
 		// Add control for the marker layer:
-		this.featureControl = new NaptanMerger.FeatureControl(this.markerLayer);
-		this.map.addControl(this.featureControl);
-		this.featureControl.activate();
+		this.feature_control = new NaptanMerger.FeatureControl(this.marker_layer);
+		this.map.addControl(this.feature_control);
+		this.feature_control.activate();
 
 		// Register event handlers for features:
-		this.featureControl.events.register('click', this, function (evt) {
-			var eventName = evt.feature.attributes.type + '_click';
-			if (evt.feature.attributes.type.endsWith('locality'))
-				eventName = 'stop_click';
-			this.events.triggerEvent(eventName, {
-				feature: evt.feature, 
-				shiftKey: evt.shiftKey,
-				ctrlKey: evt.ctrlKey
-			});
+		this.feature_control.events.register("click", this, function (evt) {
+			this.model.select_locality(evt.feature.attributes.id);
 		});
 
-		this.featureControl.events.register('clickout', this, function (evt) {
-			var eventName = evt.feature.attributes.type + '_clickout';
-			if (evt.feature.attributes.type.endsWith('locality'))
-				eventName = 'stop_clickout';
-			this.events.triggerEvent(eventName, {feature: evt.feature});
+		this.feature_control.events.register("clickout", this, function (evt) {
+			this.model.unselect_locality();
 		});
 
-		this.featureControl.events.register('mouseover', this, function (evt) {
-			var eventName = evt.feature.attributes.type + '_mouseover';
-			if (evt.feature.attributes.type.endsWith('locality'))
-				eventName = 'stop_mouseover';
-			this.events.triggerEvent(eventName, {feature: evt.feature});
+		this.feature_control.events.register("mouseover", this, function (evt) {
+			this.model.highlight_locality(evt.feature.attributes.id);
 		});
 
-		this.featureControl.events.register('mouseout', this, function (evt) {
-			var eventName = evt.feature.attributes.type + '_mouseout';
-			if (evt.feature.attributes.type.endsWith('locality'))
-				eventName = 'stop_mouseout';
-			this.events.triggerEvent(eventName, {feature: evt.feature});
+		this.feature_control.events.register("mouseout", this, function (evt) {
+			this.model.unhighlight_locality();
 		});
 		
 		// Load previous map location:
@@ -188,22 +136,20 @@ NaptanMerger.MapControl = Class.create({
 			loc.lon = Number(v[1]);
 			zoom = Number(v[2]);
 		}
-		this.map.setCenter(loc.transform(NaptanMerger.EPSG4326, this.map.getProjectionObject()), zoom);
-			
-		// Load features:
-		this.getStops();
+		this.map.setCenter(loc.transform(
+			this.EPSG4326, this.map.getProjectionObject()), zoom);
 	},
 
 	destroy: function() {
 		this.markerControl = null;
-		this.markerLayer = null;
+		this.marker_layer = null;
 		this.map = null;
-
-		this.events = null;
+		this.model = null;
 	},
 
-	saveMapLocation: function() {
-		var loc = this.map.getCenter().clone().transform(this.map.getProjectionObject(), NaptanMerger.EPSG4326);
+	save_map_location: function() {
+		var loc = this.map.getCenter().clone().transform(
+			this.map.getProjectionObject(), this.EPSG4326);
 		var zoom = this.map.getZoom();
 
 		var decimals = Math.pow(10, Math.floor(zoom/3));
@@ -213,198 +159,110 @@ NaptanMerger.MapControl = Class.create({
 
 		setCookie("map_location", loc.lat+":"+loc.lon+":"+zoom);
 	},
-	
-	highlightFeature: function (feature) {
-		if (feature) {
-			if (feature.renderIntent == 'default')
-				feature.renderIntent = 'highlighted';
-			else if (!feature.renderIntent.endsWith('highlighted'))
-				feature.renderIntent += '_highlighted';
 
-			this.markerLayer.drawFeature(feature);
-		}
-	},
-
-	unhighlightFeature: function (feature) {
-		if (feature) {
-			if (feature.renderIntent == 'highlighted')
-				feature.renderIntent = 'default';
-			else
-				feature.renderIntent = feature.renderIntent.replace(/_highlighted/, '');
-
-			this.markerLayer.drawFeature(feature);
-		}
-	},
-
-	selectFeature: function (feature) {
-		if (feature) {
-			if (feature.renderIntent.endsWith('highlighted'))
-			{
-				if (feature.renderIntent.startsWith('marked'))
-					feature.renderIntent = 'marked_selected_highlighted';
-				else
-					feature.renderIntent = 'selected_highlighted';
-			}
-			else
-			{
-				if (feature.renderIntent.startsWith('marked'))
-					feature.renderIntent = 'marked_selected';
-				else
-					feature.renderIntent = 'selected';
-			}
-
-			this.markerLayer.drawFeature(feature);
-		}
-	},
-
-	unselectFeature: function (feature) {
-		if (feature) {
-			if (feature.renderIntent == 'selected')
-				feature.renderIntent = 'default';
-			else
-			{
-				feature.renderIntent = feature.renderIntent.replace(/_selected/, '');
-				feature.renderIntent = feature.renderIntent.replace(/selected_/, '');
-			}
-			this.markerLayer.drawFeature(feature);
-		}
-	},
-
-	markFeature: function (feature) {
-		if (feature) {
-			if (feature.renderIntent == 'default')
-				feature.renderIntent = 'marked';
-			else if (!feature.renderIntent.startsWith('marked'))
-				feature.renderIntent = 'marked_' + feature.renderIntent;
-			this.markerLayer.drawFeature(feature);
-		}
-	},
-
-	unmarkFeature: function (feature) {
-		if (feature) {
-			if (feature.renderIntent == 'marked')
-				feature.renderIntent = 'default';
-			else
-				feature.renderIntent = feature.renderIntent.replace(/marked_/, '');
-
-			this.markerLayer.drawFeature(feature);
-		}
-	},
-
-	activateDragging: function (feature) {
-		this.featureControl.activateDragging(feature);
-	},
-
-	deactivateDragging: function (feature) {
-		this.featureControl.deactivateDragging(feature);
-	},
-
-	getStops: function() {
+	get_localities: function() {
 		if (this.map.getZoom() > 11)
 		{
 			var bounds = this.map.getExtent().clone();
-			bounds = bounds.transform(NaptanMerger.EPSG900913, NaptanMerger.EPSG4326);
+			bounds = bounds.transform(this.EPSG900913, this.EPSG4326);
 
-			this.loadIndicator.show();
+			this.load_indicator.show();
 
 			var request = OpenLayers.Request.GET({
 				url: "localities?bbox="+bounds.toBBOX(),
 				scope: this,
-				success: function (request)
-				{
+				success: function(request) {
 					json = new OpenLayers.Format.JSON();
 					data = json.read(request.responseText);
-					this.addStops(data.localities);
-					this.loadIndicator.hide();
+					data.localities.each(function (locality) {
+						this.model.add_locality(locality);
+					}, this);
+					this.load_indicator.hide();
 				}
 			});
-			
-			var deleteFeatures = new Array();
-			this.markerLayer.features.each(function (stop) {
-				if (!this.map.getExtent().containsLonLat(new OpenLayers.LonLat(stop.geometry.x, stop.geometry.y))) {
-					deleteFeatures.push(stop);
+		
+			// Remove localities which are outside the viewport:
+			var removeFeatures = Array();
+			this.marker_layer.features.each(function(locality) {
+				if (!this.map.getExtent().containsLonLat(
+					new OpenLayers.LonLat(locality.geometry.x, locality.geometry.y))
+					&& !this.model.is_locality_selected(locality.attributes.id)
+					&& !this.model.is_locality_highlighted(locality.attributes.id)
+					&& !this.model.is_locality_marked(locality.attributes.id)) {
+					removeFeatures.push(locality.attributes.id);
 				}
 			}, this);
-			this.markerLayer.destroyFeatures(deleteFeatures);
-		}
-		else
-		{
-			this.markerLayer.destroyFeatures();
+			removeFeatures.each(this.model.remove_locality, this.model);
+		} else {
+			this.model.clear_localities();
 		}
 	},
 
-	/**
-	 * Method: findStop
-	 */
-	findStop: function(id)
+	locality_added: function(locality) {
+
+		var position = new OpenLayers.Geometry.Point(locality.lon, locality.lat);
+		position = position.transform(this.EPSG4326, this.EPSG900913);
+
+		var attributes = new Object();
+		attributes.id = locality.id;
+		attributes.type = get_locality_type(locality);
+		attributes.highlighted = this.UNHIGHLIGHTED;
+		attributes.selected = this.UNSELECTED;
+		attributes.marked = this.UNMARKED;
+
+		this.marker_layer.addFeatures([new OpenLayers.Feature.Vector(position, attributes)]);
+	},
+
+	locality_removed: function(locality) {
+		this.marker_layer.destroyFeatures([this._find_locality(locality.id)]);
+	},
+
+	locality_updated: function(locality) {
+		var feature = this._find_locality(locality.id);
+		feature.attributes.type = get_locality_type(locality);
+		this.marker_layer.drawFeature(feature);
+	},
+	
+	locality_highlighted: function(locality) {
+		var feature = this._find_locality(locality.id);
+		feature.attributes.highlighted = this.HIGHLIGHTED;
+		this.marker_layer.drawFeature(feature);
+	},
+
+	locality_unhighlighted: function(locality) {
+		var feature = this._find_locality(locality.id);
+		feature.attributes.highlighted = this.UNHIGHLIGHTED;
+		this.marker_layer.drawFeature(feature);
+	},
+
+	locality_selected: function(locality) {
+		var feature = this._find_locality(locality.id);
+		feature.attributes.selected = this.SELECTED;
+		this.marker_layer.drawFeature(feature);
+	},
+
+	locality_unselected: function(locality) {
+		var feature = this._find_locality(locality.id);
+		feature.attributes.selected = this.UNSELECTED;
+		this.marker_layer.drawFeature(feature);
+	},
+
+	locality_marked: function(locality) {
+		var feature = this._find_locality(locality.id);
+		feature.attributes.marked = this.MARKED;
+		this.marker_layer.drawFeature(feature);
+	},
+
+	locality_unmarked: function(locality) {
+		var feature = this._find_locality(locality.id);
+		feature.attributes.marked = this.UNMARKED;
+		this.marker_layer.drawFeature(feature);
+	},
+
+	_find_locality: function(id)
 	{
-		return this.markerLayer.features.find(function(feature) { 
-			return feature.attributes.type.endsWith('locality') && feature.attributes.id == id; 
+		return this.marker_layer.features.find(function(feature) { 
+			return feature.attributes.id == id; 
 		});
-	},
-
-	/**
-	 * Method: addStops
-	 * Add stops to the marker layer on the map.
-	 *
-	 * Parameters:
-	 * stops - {Array of Stops} List of stops to add to the map.
-	 */
-	addStops: function(stops) {
-		var newFeatures = new Array();
-
-		stops.each(function(stop) {
-			if (this.findStop(stop.id) != undefined)  return;
-
-			var position = new OpenLayers.Geometry.Point(stop.lon, stop.lat);
-			position = position.transform(NaptanMerger.EPSG4326, NaptanMerger.EPSG900913);
-
-			stop.tags['id'] = stop.id;
-			stop.tags['osm_id'] = stop.osm_id;
-			stop.tags['osm_version'] = stop.osm_version;
-
-			if ('place' in stop.tags && stop.hidden) {
-				stop.type = 'deleted_osm_locality';
-			}
-			else if('LocalityName' in stop.tags && stop.hidden) {
-				stop.type = 'deleted_nptg_locality';
-			}
-			else if ('place' in stop.tags && stop.match_count > 1) {
-				stop.type = 'error_osm_locality';
-			}
-			else if ('place' in stop.tags && stop.duplicate_count > 0 ) {
-				stop.type = 'error_osm_locality';
-			}
-			else if('place' in stop.tags && (
-				[
-					"city", "town", "municipality", "village", "hamlet", 
-					"suburb", "island", "locality", "farm"
-				].indexOf(stop.tags['place']) < 0 
-				|| !('name' in stop.tags))) {
-				stop.type = 'error_osm_locality';
-			}
-			else if('LocalityName' in stop.tags && stop.match_count > 1) {
-				stop.type = 'error_nptg_locality';
-			}
-			else if ('place' in stop.tags && stop.match_count == 0) {
-				stop.type = 'plain_osm_locality';
-			}
-			else if ('place' in stop.tags && stop.match_count == 1) {
-				stop.type = 'matched_osm_locality';
-			}
-			else if ('LocalityName' in stop.tags && stop.match_count == 0) {
-				stop.type = 'plain_nptg_locality';
-			}	
-			else if ('LocalityName' in stop.tags && stop.match_count > 0) {
-				stop.type = 'matched_nptg_locality';
-			}
-			else {
-				stop.type = ''; // This should never be called
-			}
-
-			newFeatures.push(new OpenLayers.Feature.Vector(position, stop));
-		}, this);
-
-		this.markerLayer.addFeatures(newFeatures);
-	},
+	}
 });

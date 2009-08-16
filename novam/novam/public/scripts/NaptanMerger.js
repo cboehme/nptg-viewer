@@ -23,6 +23,7 @@ window.NaptanMerger = {
 
 var jsFiles = new Array(
 	"NaptanMerger/Utilities.js",
+	"NaptanMerger/Model.js",
 	"NaptanMerger/WidgetContainer.js",
 	"NaptanMerger/Widget.js",
 	"NaptanMerger/MapControl.js",

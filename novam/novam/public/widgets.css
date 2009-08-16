@@ -1,0 +1,241 @@
+/*
+ * Widgets: Default styles
+ */
+
+h2
+{
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	height: 20px;
+
+	margin: 0px;
+
+	padding-left: 5px;
+	padding-top: 1px;
+	padding-right: 5px;
+	padding-bottom: 1px;
+
+	border-bottom: 1px solid #babdb6;
+
+	font-weight: bold;
+	font-size: small;
+}
+
+/*
+ * LocalityViewer
+ */
+
+div.LocalityViewerDetails
+{
+	position: absolute;
+	left: 0px;
+	top: 23px;
+	right: 0px;
+	bottom: 45px;
+
+	margin: 0px;
+
+	padding-left: 10px;
+	padding-right: 10px;
+	padding-top: 10px;
+	padding-bottom: 10px;
+
+	border-bottom: 1px solid #babdb6;
+
+	font-size: small;
+
+	overflow: auto;
+}
+
+div.LocalityViewerDetails h3
+{
+	font-size: small;
+	
+	margin-left: 0px;
+	margin-right: 0px;
+	margin-top: 6px;
+	margin-bottom: 3px;
+
+	padding-left: 10px;
+	padding-right: 10px;
+	padding-top: 1px;
+	padding-bottom: 1px;
+
+	background-color: #eeeeec;	
+}
+
+div.LocalityViewerDetails h3:first-child
+	{ margin-top: 0px; }
+
+div.LocalityViewerDetails img
+{
+	vertical-align: middle;
+	margin-right: 5px;
+}
+
+div.LocalityViewerDetails p,
+div.LocalityViewerDetails dl
+{
+	margin-left: 17px;
+	margin-right: 0px;
+	margin-top: 0px;
+	margin-bottom: 1px;
+
+	padding-left: 10px;
+	padding-right: 10px;
+	padding-top: 2px;
+	padding-bottom: 2px;
+}
+
+div.LocalityViewerDetails p.HiddenLocality
+	{ background-color: #fff8c6; }
+
+div.LocalityViewerDetails dt
+{
+	display: block;
+	float: left;
+	clear: both;
+
+	width: auto;
+	min-width: 180px;
+}
+
+div.LocalityViewerDetails dd
+{
+	display: block;
+	margin-left: 180px;
+
+	width: auto;
+
+}
+
+button.LocalityViewer
+{
+	position: absolute;
+	right: 10px;
+	bottom: 10px;
+
+	width: 100px;
+	max-height: 25px;
+
+	vertical-align: bottom;
+}
+
+div.LocalityViewerComment
+{
+	position: absolute;
+	left: 10px;
+	right: 130px;
+	bottom: 10px;
+
+	max-height: 25px;
+}
+
+div.LocalityViewerComment input
+{
+	position: relative;
+
+	width: 100%;
+	max-height: 25px;
+
+	z-index: 1;
+}
+
+div.LocalityViewerComment label
+{
+	position: absolute;
+	display: block;
+
+	left: 4px;
+	top: 2px;
+	
+	z-index: 2;
+
+	color: #babdb6;
+
+	font-style: italic;
+}
+
+/*
+ * LocalityList
+ */
+
+ol.LocalityList
+{
+	position: absolute;
+	left: 0px;
+	top: 23px;
+	right: 0px;
+	bottom: 0px;
+
+	margin: 0px;
+	padding-left: 0px;
+
+	overflow: auto;
+
+	font-size: small;
+}
+
+ol.LocalityList li
+{
+	display: block;
+
+	list-style-type: none;
+	list-style-position: inside;
+
+	border-top: 1px dotted #babdb6;
+
+	padding-top: 3px;
+	padding-left: 5px;
+	padding-bottom: 3px;
+
+	cursor: pointer;
+}
+
+ol.LocalityList li:first-child
+	{ border-top: none; }
+
+ol.LocalityList li.Highlight
+	{ background-color: #fff8c6; }
+
+ol.LocalityList img
+{
+	vertical-align: middle;
+	margin-right: 5px;
+}
+
+
+/*
+ * MapControl
+ */
+
+#map
+	{ border: 1px solid #babdb6; }
+
+/* For some reason the slider image has a top offset of 6px which results in 
+ * a displacement of the slider on the zoombar. Setting vertical-align to top 
+ * solves this issue. However it should not be neccessary in the first place!
+ */
+img[src="scripts/img/slider.png"]
+	{ vertical-align: top; }
+
+#map_OpenLayers_ViewPort
+	{ z-index: 0; }
+
+div.MapLoadIndicator
+{
+	position: absolute;
+	left: 40%;
+	right: 40%;
+	top: 15px;
+
+	padding: 5px;
+
+	border: 1px solid black;
+
+	background-color: white;
+
+	z-index: 1;
+}

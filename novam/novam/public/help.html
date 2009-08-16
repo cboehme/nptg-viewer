@@ -1,0 +1,96 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+
+<html>
+<head>
+	<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+	<title>NPTG-Viewer: Help</title>
+
+	<link rel="icon" type="image/png" href="site-icon.png">
+
+	<link rel="stylesheet" href="base.css" type="text/css">
+	<link rel="stylesheet" href="help.css" type="text/css">
+</head>
+<body>
+	<h1><img src="logo.png" alt="NOVAM-Logo">NPTG-Viewer: Help</h1>
+	<ul id="tools_menu">
+		<li><a href="javascript:window.close();">Close</a></li>
+		<li><a href="#toc">Table of contents</a></li>
+	</ul>
+	<h2 id="toc">Table of contents</h2>
+	<ol>
+		<li><a href="#what_is_nptg">What is NPTG?</a></li>
+		<li><a href="#what_is_nptg_viewer">What is the NPTG-Viewer and what can I do with it?</a></li>
+		<li><a href="#when_do_localities_match">When do localities match?</a></li>
+		<li><a href="#when_are_localities_erroneous">When are localities erroneous?</a></li>
+		<li><a href="#what_means_hiding">What does &ldquo;hiding&rdquo;mean?</a></li>
+		<li><a href="#is_it_open_source">Is the NPTG-Viewer an open-source application?</a></li>
+		<li><a href="#further_questions">Any further questions?</a></li>
+	</ol>
+
+	<h2 id="what_is_ntpg">What is NPTG?</h2>
+
+	<p><i>National Public Transport Gazetteer (NPTG)</i> is an official UK
+	dataset for places the <a href="http://www.dft.gov.uk/">UK Department 
+	for Transport</a> and <a href="http://www.traveline.org.uk/aboutTL.htm">Traveline</a> 
+	have offered to make available to the <a href="http://www.openstreetmap.org/">OpenStreetMap</a> 
+	project. The NPTG dataset contains information on about 50.000 localities in the UK. 
+	Additionally to  names and locations for places the gazetteer also provides information 
+	for points of interest. However, this information is only patchy and likely to be removed 
+	in the future. In case you encounter a POI from NPTG it is best to 
+	<a href="#what_means_hiding">hide</a> it.
+	</p>
+	<p>Further information about the NaPTAN/NPTG import can be found in the 
+	<a href="http://wiki.openstreetmap.org/wiki/Naptan">OpenStreetMap-Wiki</a>.
+	</p>
+	
+	<h2 id="what_is_nptg_viewer">What is the NPTG-Viewer and what can I do with it?</h2>
+
+	<p>The NPTG-Viewer allows to compare place nodes in the OSM database with localities in the NPTG
+	dataset. NPTG data has not been imported into the OSM database as its hierarchy does not match
+	the place hierarchy of OSM.
+	</p>
+	<p>E.g. the viewer can be used to find missing places in OSM, to spot erroneous place names or 
+	to find double place names.
+	<p>
+
+	<h2 id="when_do_localities_match">When do localities match?</h2>
+
+	<p>Two localities are considered to be matching if they originate from different datasets (one from OSM and the
+	other one from NPTG), if they have exactly the same names and if they are not too far apart.
+	</p>
+
+	<h2 id="when_are_localities_erroneous">When are localities erroneous?</h2>
+
+	<p>The NPTG-Viewer complains about two types of errors. First, it expects to find no more than 
+	<em>one</em> matching locality for each place. Secondly, places taken from OSM are only considered valid
+	if they have a name tag and a place tag set to city, town, municipality, village, hamlet, suburb, island, 
+	locality or farm.
+	</p>
+
+	<h2 id="what_means_hiding">What does &ldquo;hiding&rdquo;mean?</h2>
+
+	<p>Localities can be hidden in NPTG-Viewer to mark them as being  invalid. 
+	Thus, duplicate/double localities or places
+	with invalid tags can be marked. It is planned to provide lists of hidden localities that can be downloaded. These
+	lists can be updated by (?) the OSM database.
+	</p>
+	<p>When a location is being hidden an additional comment can be made explaining the reason for hiding
+	the locality.
+	</p>
+
+	<h2 id="is_it_open_source">Is the NPTG-Viewer an open-source application?</h2>
+
+	<p>The NPTG-Viewer is meant to be open-source software. However, I did not manage to publish the
+	source code. However, if you are interested in the source code please 
+	<a href="mailto:christoph@mappa-mercia.org">e-mail</a> me and I'll be happy to send you the code.
+	</p>
+
+	<h2 id="further_questions">Any further questions</h2>
+
+	<p>If you have any other questions join the 
+	<a href="http://lists.openstreetmap.org/listinfo/talk-transit">talk-transit mailinglist</a> or
+	send a message to <a href="mailto:christoph@mappa-mercia.org">christoph@mapp-mercia.org</a>.
+	</p>
+</body>
+</html>

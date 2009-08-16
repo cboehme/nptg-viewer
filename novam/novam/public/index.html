@@ -2,12 +2,15 @@
 
 <html>
 <head>
+	<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
 	<title>NPTG-Viewer</title>
 
 	<link rel="icon" type="image/png" href="site-icon.png">
 
 	<link rel="stylesheet" href="base.css" type="text/css">
-	<link rel="stylesheet" href="viewer-layout.css" type="text/css">
+	<link rel="stylesheet" href="viewer.css" type="text/css">
+	<link rel="stylesheet" href="widgets.css" type="text/css">
 
 	<script src="scripts/prototype.js" type="text/javascript"></script>
 	<script src="scripts/OpenLayers.js" type="text/javascript"></script>
@@ -15,102 +18,29 @@
 	<script src="scripts/NaptanMerger.js" type="text/javascript"></script>
 	<script type="text/javascript">
 
+		var model = null;
 		var mapControl = null;
 		var localityViewer = null;
 		var matchList = null;
 		var duplicateList = null;
 
-		var currentLocality = null;
-
 		runApp(function () {
-			var localityPanel = new NaptanMerger.WidgetContainer('localityPanel');
-			var matchPanel = new NaptanMerger.WidgetContainer('matchPanel');
-			var duplicatePanel = new NaptanMerger.WidgetContainer('duplicatePanel');
+			var localityPanel = new NaptanMerger.WidgetContainer("localityPanel");
+			var matchPanel = new NaptanMerger.WidgetContainer("matchPanel");
+			var duplicatePanel = new NaptanMerger.WidgetContainer("duplicatePanel");
 
-			mapControl = new NaptanMerger.MapControl('map');
-			localityViewer = new NaptanMerger.LocalityViewer();
-			matchList = new NaptanMerger.LocalityList(mapControl, 'Matching Localities');
-			duplicateList = new NaptanMerger.LocalityList(mapControl, 'Duplicate Localities');
+			model = new NaptanMerger.Model();
+
+			mapControl = new NaptanMerger.MapControl("map", model);
+			localityViewer = new NaptanMerger.LocalityViewer(model);
+			matchList = new NaptanMerger.LocalityList(model, 
+				"Matching Localities", "localities?matches_with=");
+			duplicateList = new NaptanMerger.LocalityList(model, 
+				"Duplicates", "localities?duplicates_of=");
 			
 			localityPanel.embedWidget(localityViewer);
 			matchPanel.embedWidget(matchList);
 			duplicatePanel.embedWidget(duplicateList);
-
-			mapControl.events.register("stop_click", this, function (evt) {
-				if (currentLocality) {
-					mapControl.unselectFeature(currentLocality);
-				}
-
-				mapControl.selectFeature(evt.feature);
-				localityViewer.setLocality(evt.feature);
-				matchList.getLocalities('localities?matches_with='+evt.feature.attributes.id);
-				duplicateList.getLocalities('localities?duplicates_of='+evt.feature.attributes.id);
-				currentLocality = evt.feature;
-			});
-
-			mapControl.events.register("stop_mouseover", this, function(evt) {
-				mapControl.highlightFeature(evt.feature);
-				matchList.highlightLocality(evt.feature);
-				duplicateList.highlightLocality(evt.feature);
-				localityViewer.setLocality(evt.feature);
-			});
-
-			mapControl.events.register("stop_mouseout", this, function(evt) {
-				mapControl.unhighlightFeature(evt.feature);
-				matchList.unhighlightLocality(evt.feature);
-				duplicateList.unhighlightLocality(evt.feature);
-				localityViewer.setLocality(currentLocality);
-			});
-
-			matchList.events.register('mouseover', this, function(evt) {
-				matchList.highlightLocality(evt.feature);
-				mapControl.highlightFeature(evt.feature);
-				localityViewer.setLocality(evt.feature);
-			});
-
-			matchList.events.register('mouseout', this, function(evt) {
-				matchList.unhighlightLocality(evt.feature);
-				mapControl.unhighlightFeature(evt.feature);
-				localityViewer.setLocality(currentLocality);
-			});
-
-			matchList.events.register('click', this, function(evt) {
-				if (currentLocality) {
-					mapControl.unselectFeature(currentLocality);
-				}
-
-				mapControl.unhighlightFeature(evt.feature);
-				mapControl.selectFeature(evt.feature);
-				localityViewer.setLocality(evt.feature);
-				matchList.getLocalities('localities?matches_with='+evt.feature.attributes.id);
-				duplicateList.getLocalities('localities?duplicates_of='+evt.feature.attributes.id);
-				currentLocality = evt.feature;
-			});
-
-			duplicateList.events.register('mouseover', this, function(evt) {
-				duplicateList.highlightLocality(evt.feature);
-				mapControl.highlightFeature(evt.feature);
-				localityViewer.setLocality(evt.feature);
-			});
-
-			duplicateList.events.register('mouseout', this, function(evt) {
-				duplicateList.unhighlightLocality(evt.feature);
-				mapControl.unhighlightFeature(evt.feature);
-				localityViewer.setLocality(currentLocality);
-			});
-
-			duplicateList.events.register('click', this, function(evt) {
-				if (currentLocality) {
-					mapControl.unselectFeature(currentLocality);
-				}
-
-				mapControl.unhighlightFeature(evt.feature);
-				mapControl.selectFeature(evt.feature);
-				localityViewer.setLocality(evt.feature);
-				matchList.getLocalities('localities?matches_with='+evt.feature.attributes.id);
-				duplicateList.getLocalities('localities?duplicates_of='+evt.feature.attributes.id);
-				currentLocality = evt.feature;
-			});
 		});
 
 	</script>
@@ -119,24 +49,80 @@
 <body>
 	<h1><img src="logo.png" alt="NOVAM-Logo">NPTG-Viewer</h1>
 	<ul id="tools_menu">
-		<li><a href="">Help</a></li>
+		<li class="SubMenu">About
+			<div style="padding-left: 50px;">
+				<p><img src="logo.png" style="float: left; margin-left: -40px; margin-right: 3px; margin-bottom: 3px;">
+				The NPTG-Viewer is a tool to compare place information in OpenStreetMap with
+				localities in the National Public Transport Gazetteer (NPTG).<br>
+				Please refer to the <a href="help.html" target="_blank">help page</a> for details
+				on using the NPTG-Viewer.
+				</p>
+				<p>Further information about the NPTG/NaPTAN import can be found on 
+				<a href="http://wiki.openstreetmap.org/wiki/Naptan" target="_blank">OSM-Wiki/Naptan</a>.
+				</p>
+				<p>Please contact <a href="mailto:christoph@mappa-mercia.org">christoph@mappa-mercia.org</a>
+				if you have any questions about the NPTG-Viewer.
+				</p>
+				<p>Map Copyright &copy; <a href="http://www.openstreetmap.org/" target="_blank">OpenStreetMap</a> 
+				contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/" target="_blank">CC-BY-SA</a>.
+				</p>
+			</div>
+		</li>
+		<li><a href="help.html" target="_blank">Help</a></li>
+		<li class="SubMenu">Map Key
+			<dl id="map_key">
+				<dt>
+					<img src="plain_nptg_locality.png" alt="Blue marker showing an &ldquo;N&rdquo;">
+					<img src="plain_osm_locality.png" alt="Yellow marker showing an &ldquo;O&rdquo;">
+				</dt>
+				<dd>
+					Unmatched locality from NPTG (&ldquo;<i>N</i>&rdquo;) 
+					or OpenStreetMap (&ldquo;<i>O</i>&rdquo;)
+				</dd>
+				<dt>
+					<img src="deleted_nptg_locality.png" style="opacity: 0.6;"
+						alt="Blue translucent marker showing an &ldquo;N&rdquo;">
+					<img src="deleted_osm_locality.png" style="opacity: 0.6;"
+						alt="Yellow translucent marker showing an &ldquo;O&rdquo;">
+				</dt>
+				<dd>
+					Locality has been hidden (e.g. because it is not 
+					existing on the ground or it is a duplicate)</dd>
+				<dt>
+					<img src="matched_nptg_locality.png" style="opacity: 0.6;" 
+						alt="Green translucent marker showing an &ldquo;N&rdquo;">
+					<img src="matched_osm_locality.png" alt="Green marker showing an &ldquo;O&rdquo;">
+				</dt>
+				<dd>Matched locality without errors</dd>
+				<dt>
+					<img src="error_nptg_locality.png" alt="Orange locality showing an &ldquo;N&rdquo;">
+					<img src="error_osm_locality.png" alt="Orange locality showing an &ldquo;O&rdquo;">
+				</dt>
+				<dd>
+					Erroneous locality either because of duplicates or wrong 
+					tagging (<a href="help.html#when_are_localities_erroneous" target="_blank">see help for details</a>)
+				</dd>
+				<dt>
+					<img src="plain_nptg_locality_selected.png" alt="Red marker showing an &ldquo;N&rdquo;">
+					<img src="plain_osm_locality_selected.png" alt="Red marker showing an &ldquo;O&rdquo;">
+				</dt>
+				<dd>Currently selected locality</dd>
+				<dt>
+					<img src="legend_nptg_marked.png" 
+						alt="Marker with red outline and a red letter &ldquo;N&rdquo;">
+					<img src="legend_osm_marked.png" 
+						alt="Marker with red outline and a red letter &ldquo;O&rdquo;">
+				</dt>
+				<dd>
+					Duplicates/matches of the currently selected locality. 
+					The background colour can be any of the above
+				</dd>
+			</dl>
+		</li>
 	</ul>
 	<div id="map"></div>
 	<div id="localityPanel"></div>
 	<div id="matchPanel"></div>
 	<div id="duplicatePanel"></div>
-	<div id="mapKey">
-		<h2>Map Key</h2>
-		<dl>
-			<dt><img src="plain_nptg_locality.png" alt="Blue marker"></dt>
-			<dd>Locality from the NPTG dataset with no counterpart in OSM</dd>
-			<dt><img src="plain_osm_locality.png" alt="Yellwo marker"></dt>
-			<dd>Locality from OpenStreetMap with no matching locality in NPTG</dd>
-			<dt><img src="matched_nptg_locality.png" alt="Grey marker"></dt>
-			<dd>Locality from NPTG which has been matched with a OSM locality</dd>
-			<dt><img src="matched_osm_locality.png" alt="Green marker"></dt>
-			<dd>Locality from OpenStreetMap which as been match with NPTG locality</dd>
-		</dl>
-	</div>
 </body>
 </html>

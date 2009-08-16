@@ -4,8 +4,8 @@
 
 function regExpEscape(text)
 {
-	var specials = ['/', '.', '*', '+', '?', '|', '(', ')', '[', ']', '{', '}', '\\'];
-	return String(text).replace(new RegExp('(\\' + specials.join('|\\') + ')', 'g'), '\\$1');
+	var specials = ["/", ".", "*", "+", "?", "|", "(", ")", "[", "]", "{", "}", "\\"];
+	return String(text).replace(new RegExp("(\\" + specials.join("|\\") + ")", "g"), "\\$1");
 }
 
 /*
@@ -18,14 +18,61 @@ function uniqueId()
 uniqueId.nextId = 0;
 
 /*
+ * Get locality type
+ */
+
+function get_locality_type(locality) {
+	var place_types = [
+		"city", "town", "municipality", "village", "hamlet", 
+		"suburb", "island", "locality", "farm"
+	];
+
+	if ("place" in locality.tags && locality.hidden) {
+		return "deleted_osm_locality";
+	}
+	else if("LocalityName" in locality.tags && locality.hidden) {
+		return "deleted_nptg_locality";
+	}
+	else if ("place" in locality.tags && locality.match_count > 1) {
+		return "error_osm_locality";
+	}
+	else if ("place" in locality.tags && locality.duplicate_count > 0 ) {
+		return "error_osm_locality";
+	}
+	else if("place" in locality.tags && (
+		place_types.indexOf(locality.tags["place"]) < 0 
+		|| !("name" in locality.tags))) {
+			return "error_osm_locality";
+	}
+	else if("LocalityName" in locality.tags && locality.match_count > 1) {
+		return "error_nptg_locality";
+	}
+	else if ("place" in locality.tags && locality.match_count == 0) {
+		return "plain_osm_locality";
+	}
+	else if ("place" in locality.tags && locality.match_count == 1) {
+		return "matched_osm_locality";
+	}
+	else if ("LocalityName" in locality.tags && locality.match_count == 0) {
+		return "plain_nptg_locality";
+	}	
+	else if ("LocalityName" in locality.tags && locality.match_count > 0) {
+		return "matched_nptg_locality";
+	}
+	else {
+		return null; // This should never be called
+	}
+}
+
+/*
  * Replace misc. separators with semicolons in a string
  */
 function replaceSeparators(str, separator, replaceWhitespace)
 {
 	var newStr;
 
-	if (separator != undefined && separator != '')
-		newStr = str.replace(new RegExp(regExpEscape(separator), 'g'), ';');
+	if (separator != undefined && separator != "")
+		newStr = str.replace(new RegExp(regExpEscape(separator), "g"), ";");
 	else
 	{
 		// If no separator is provided try first a set 
@@ -33,15 +80,15 @@ function replaceSeparators(str, separator, replaceWhitespace)
 		// none-word characters which are not whitespace
 		// and finally replace whitespace if everything
 		// else failed (only if replaceWhitespace is set):
-		newStr = str.replace(/(\|)|(\\\\s)|(\\s)/g, ';');
+		newStr = str.replace(/(\|)|(\\\\s)|(\\s)/g, ";");
 		if (newStr == str)
-			newStr = str.replace(/[^\w\s]/g, ';');
+			newStr = str.replace(/[^\w\s]/g, ";");
 		if (newStr == str && replaceWhitespace)
-			newStr = str.replace(/\s/g, ';');
+			newStr = str.replace(/\s/g, ";");
 	}
 	// Finally remove trailing, leading and duplicate semicolons:
-	newStr = newStr.replace(/(\s*;+\s*)/g, ';');
-	return newStr.replace(/(^;)|(;$)/g, '');
+	newStr = newStr.replace(/(\s*;+\s*)/g, ";");
+	return newStr.replace(/(^;)|(;$)/g, "");
 }
 
 /*
@@ -109,7 +156,7 @@ function concatElements()
 	var fragment = document.createDocumentFragment();
 	for (var i = 0; i < arguments.length; ++i)
 	{
-		if (typeof(arguments[i]) == 'string')
+		if (typeof(arguments[i]) == "string")
 			fragment.appendChild(Text(arguments[i]));
 		else
 			fragment.appendChild(arguments[i]);

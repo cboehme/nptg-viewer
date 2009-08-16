@@ -3,9 +3,24 @@ body
 	background-color: white; 
 
 	font-family: sans-serif;
-
-	margin: 0px;
 }
+
+a:link,
+a:visited
+{
+	color: #729fcf;
+
+	text-decoration: none;
+}
+
+a:hover,
+a:active
+	{ text-decoration: underline; }
+
+img[src="matched_nptg_locality_small.png"],
+img[src="deleted_osm_locality_small.png"],
+img[src="deleted_nptg_locality_small.png"]
+	{ opacity: 0.6; }
 
 /*
  * Header: title and tools menu
@@ -14,10 +29,9 @@ body
 h1,
 ul#tools_menu
 {
-	margin: 0px;
+	height: auto;
 
-	padding-top: 5px;
-	padding-bottom: 5px;
+	margin: 0px;
 
 	background-color: #729fcf;
 	color: white;
@@ -32,10 +46,11 @@ h1
 	left: 0px;
 	top: 5px;
 	width: auto;
-	height: 15px;
 	
 	padding-left: 50px;
 	padding-right: 50px;
+	padding-top: 5px;
+	padding-bottom: 2px;
 
 	letter-spacing: 0.5em;
 
@@ -60,12 +75,13 @@ ul#tools_menu
 	top: 5px;
 	right: 0px;
 	width: 500px;
-	height: 15px;
+
+	z-index: 7;
 
 	padding-left: 0px;
 	padding-right: 30px;
-
-	text-align: right;
+	padding-top: 3px;
+	padding-bottom: 0px;
 
 	background-image: url("header_left_edge.png");
 	background-position: left center;
@@ -74,150 +90,77 @@ ul#tools_menu
 
 ul#tools_menu li
 {
-	display: inline-block;
+	position: relative;
+	display: block;
 
-	padding-left: 20px;
-	padding-right: 0px;
+	float: right;
+
+	margin-left: 20px;
+	margin-right: 0px;
+
+	padding-left: 6px;
+	padding-right: 6px;
+	padding-top: 2px;
+	padding-bottom: 3px;
 }
 
-ul#tools_menu a:link,
-ul#tools_menu a:visited
+ul#tools_menu > li > a:link,
+ul#tools_menu > li > a:visited
 {
 	color: white;
 
 	text-decoration: none;
 }
 
-ul#tools_menu a:hover,
-ul#tools_menu a:active
+ul#tools_menu > li > a:hover,
+ul#tools_menu > li > a:active
 	{ text-decoration: underline; }
 
 /*
- * Widgets
+ * Sub menus 
  */
 
-h2
+ul#tools_menu > li.SubMenu:hover
 {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	right: 0px;
-	height: 20px;
-
-	margin: 0px;
 
 	padding-left: 5px;
-	padding-top: 1px;
 	padding-right: 5px;
-	padding-bottom: 1px;
+	padding-top: 1px;
 
-	border-bottom: 1px solid #babdb6;
+	border-left: 1px solid black;
+	border-right: 1px solid black;
+	border-top: 1px solid black;
 
-	font-weight: bold;
-	font-size: small;
+	color: black;
+	background-color: white;
 }
 
-button.OkButton
+ul#tools_menu dl,
+ul#tools_menu ul,
+ul#tools_menu div
 {
+	display: none;
 	position: absolute;
-	right: 100px;
-	bottom: 0px;
-	height: 25px;
-	width: 80px;
-}
 
-button.CancelButton
-{
-	position: absolute;
-	right: 10px;
-	bottom: 0px;
-	height: 25px;
-	width: 80px;
-}
+	right: -1px;
+	top: 22px;
+	width: 300px;
 
-/*
- * LocalityViewer
- */
-
-dl.LocalityViewer
-{
-	position: absolute;
-	left: 0px;
-	top: 23px;
-	right: 0px;
-	bottom: 0px;
+	border-left: 1px solid black;
+	border-right: 1px solid black;
 
 	margin: 0px;
+	padding: 8px;
 
-	padding-left: 10px;
-	padding-right: 10px;
-	padding-top: 10px;
-	padding-bottom: 10px;
+	color: black;
 
-	font-size: small;
-
-	overflow: auto;
+	background-color: white;
+	background-image: url("menu_background.png");
+	background-position: center bottom;
+	background-repeat: no-repeat;
 }
 
-dl.LocalityViewer dt
-{
-	display: block;
-	float: left;
-	clear: both;
-
-	width: auto;
-	min-width: 180px;
-
-	font-weight: bold;
-}
-
-dl.LocalityViewer dd
-{
-	display: block;
-	margin-left: 180px;
-
-	width: auto;
-
-}
-
-/*
- * LocalityList
- */
-
-ol.LocalityList
-{
-	position: absolute;
-	left: 0px;
-	top: 23px;
-	right: 0px;
-	bottom: 0px;
-
-	margin: 0px;
-	padding-left: 0px;
-
-	overflow: auto;
-
-	font-size: small;
-}
-
-ol.LocalityList li
-{
-	display: block;
-
-	list-style-type: none;
-	list-style-position: inside;
-
-	border-top: 1px dotted #babdb6;
-
-	padding-top: 3px;
-	padding-left: 5px;
-	padding-bottom: 3px;
-
-	cursor: pointer;
-}
-
-ol.LocalityList li:first-child
-	{ border-top: none; }
-
-ol.LocalityList li.Highlight
-	{ background-color: #fff8c6; }
+ul#tools_menu > li:hover dl,
+ul#tools_menu > li:hover ul,
+ul#tools_menu > li:hover div
+	{ display: block; }

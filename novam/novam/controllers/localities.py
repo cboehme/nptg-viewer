@@ -110,6 +110,7 @@ class LocalitiesController(BaseController):
 	@restrict("POST")
 	@jsonify
 	def hide(self, id):
+		localities_struct = []
 		try:
 			comment = strip_control_chars(request.POST.getone("comment"))
 
@@ -122,15 +123,56 @@ class LocalitiesController(BaseController):
 				))
 			).rowcount
 			session.commit()
-		except:
-			raise
-			return {"result": False}
 
-		return {"result": bool(result)}
+			locality = session.query(model.Locality).filter_by(id=id).one()
+
+			localities_query = session.query(model.Locality)
+			localities_query = localities_query.filter(sql.and_(
+				model.Locality.hidden == None,
+				sql.or_(
+					sql.and_(
+						sql.func.sign(model.Locality.osm_id) == sql.func.sign(locality.osm_id),
+						model.Locality.osm_id != locality.osm_id
+					),
+					sql.func.sign(model.Locality.osm_id) != sql.func.sign(locality.osm_id),
+				),
+				model.Locality.name == locality.name,
+				sql.func.sqrt(
+					sql.func.pow(model.Locality.lat-locality.lat, 2)
+					+sql.func.pow(model.Locality.lon-locality.lon, 2)
+				) < 0.1,
+			))
+
+			for locality in [locality] + localities_query.all():
+				hidden = None
+				if locality.hidden:
+					hidden = locality.hidden.strftime("%c")
+				tags_struct = {}
+				for tag in locality.tags:
+					tags_struct[tag] = locality.tags[tag].value
+				localities_struct.append({
+					"id": locality.id,
+					"lat": float(locality.lat),
+					"lon": float(locality.lon),
+					"osm_id": locality.osm_id,
+					"osm_version": locality.osm_version,
+					"name": locality.name,
+					"hidden": hidden,
+					"comment": locality.comment,
+					"duplicate_count": locality.duplicate_count,
+					"match_count": locality.match_count,
+					"tags": tags_struct
+				})
+		except:
+			return {"localities": None}
+
+		return {"localities": localities_struct}
+
 
 	@restrict("POST")
 	@jsonify
 	def unhide(self, id):
+		localities_struct = []
 		try:
 			result = session.execute(
 				model.localities.update(
@@ -138,7 +180,47 @@ class LocalitiesController(BaseController):
 				).where(model.localities.c.id == id)
 			).rowcount
 			session.commit()
-		except:
-			return {"result": False}
 
-		return {"result": bool(result)}
+			locality = session.query(model.Locality).filter_by(id=id).one()
+
+			localities_query = session.query(model.Locality)
+			localities_query = localities_query.filter(sql.and_(
+				model.Locality.hidden == None,
+				sql.or_(
+					sql.and_(
+						sql.func.sign(model.Locality.osm_id) == sql.func.sign(locality.osm_id),
+						model.Locality.osm_id != locality.osm_id
+					),
+					sql.func.sign(model.Locality.osm_id) != sql.func.sign(locality.osm_id),
+				),
+				model.Locality.name == locality.name,
+				sql.func.sqrt(
+					sql.func.pow(model.Locality.lat-locality.lat, 2)
+					+sql.func.pow(model.Locality.lon-locality.lon, 2)
+				) < 0.1,
+			))
+
+			for locality in [locality] + localities_query.all():
+				hidden = None
+				if locality.hidden:
+					hidden = locality.hidden.strftime("%c")
+				tags_struct = {}
+				for tag in locality.tags:
+					tags_struct[tag] = locality.tags[tag].value
+				localities_struct.append({
+					"id": locality.id,
+					"lat": float(locality.lat),
+					"lon": float(locality.lon),
+					"osm_id": locality.osm_id,
+					"osm_version": locality.osm_version,
+					"name": locality.name,
+					"hidden": hidden,
+					"comment": locality.comment,
+					"duplicate_count": locality.duplicate_count,
+					"match_count": locality.match_count,
+					"tags": tags_struct
+				})
+		except:
+			return {"localities": None}
+
+		return {"localities": localities_struct}
