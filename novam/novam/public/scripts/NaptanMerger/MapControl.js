@@ -17,7 +17,7 @@ NaptanMerger.MapControl = Class.create({
 	map: null,
 	marker_layer: null,
 	feature_control: null,
-	load_indicator: null,
+	map_status: null,
 
 	initialize: function(container, model) {
 
@@ -32,6 +32,7 @@ NaptanMerger.MapControl = Class.create({
 		this.model.events.register("locality_marked", this, this.locality_marked);
 		this.model.events.register("locality_unmarked", this, this.locality_unmarked);
 
+		var restrictedExtent = new OpenLayers.Bounds(-11.6, 49.6, 3.6, 61.3);
 		this.map = new OpenLayers.Map(container, {
 			controls: [
 				new OpenLayers.Control.Navigation(),
@@ -39,19 +40,19 @@ NaptanMerger.MapControl = Class.create({
 			],
 			units: 'm',
 			projection: this.EPSG900913,
-			displayProjection: this.EPSG4326
+			displayProjection: this.EPSG4326,
+			restrictedExtent: restrictedExtent.transform(this.EPSG4326, this.EPSG900913)
 		});
 
 		// Create load indicator:
-		this.load_indicator = new Element("div", {"class": "MapLoadIndicator"});
-		this.load_indicator.appendChild(Text("Loading ..."));
-		$(container).appendChild(this.load_indicator);
-		this.load_indicator.hide();
+		this.map_status = new Element("div", {"class": "MapStatus"});
+		$(container).appendChild(this.map_status);
+		this.map_status.hide();
 		
 		// Create a mapnik base layer:
 		var mapnik = new OpenLayers.Layer.OSM.Mapnik("OpenStreetMap", {
 			displayOutsideMaxExtent: true,
-			wrapDateLine: true
+			transitionEffect: "resize"
 		});
 		this.map.addLayer(mapnik);
 		
@@ -97,7 +98,10 @@ NaptanMerger.MapControl = Class.create({
 		styleMap.addUniqueValueRules("default", "selected", pointerLookup);
 
 		// Create the marker layer:
-		this.marker_layer = new OpenLayers.Layer.Vector('Markers', {styleMap: styleMap});
+		this.marker_layer = new OpenLayers.Layer.Vector('Markers', {
+			styleMap: styleMap,
+			transitionEffect: "resize"
+		});
 		this.map.addLayer(this.marker_layer);
 
 		this.map.events.register('moveend', this, this.save_map_location);
@@ -126,8 +130,8 @@ NaptanMerger.MapControl = Class.create({
 		});
 		
 		// Load previous map location:
-		var loc = new OpenLayers.LonLat(-1.902, 52.477);
-		var zoom = 15;
+		var loc = new OpenLayers.LonLat(-2.9, 54.7);
+		var zoom = 5;
 		cookie = getCookie("map_location");
 		if (cookie != null)
 		{
@@ -166,7 +170,8 @@ NaptanMerger.MapControl = Class.create({
 			var bounds = this.map.getExtent().clone();
 			bounds = bounds.transform(this.EPSG900913, this.EPSG4326);
 
-			this.load_indicator.show();
+			this.map_status.replaceChildren(Text("Loading ..."));
+			this.map_status.show();
 
 			var request = OpenLayers.Request.GET({
 				url: "localities?bbox="+bounds.toBBOX(),
@@ -177,7 +182,7 @@ NaptanMerger.MapControl = Class.create({
 					data.localities.each(function (locality) {
 						this.model.add_locality(locality);
 					}, this);
-					this.load_indicator.hide();
+					this.map_status.hide();
 				}
 			});
 		
@@ -195,6 +200,9 @@ NaptanMerger.MapControl = Class.create({
 			removeFeatures.each(this.model.remove_locality, this.model);
 		} else {
 			this.model.clear_localities();
+
+			this.map_status.replaceChildren(Text("Please zoom in to see the locality overlay"));
+			this.map_status.show();
 		}
 	},
 

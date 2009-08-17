@@ -224,11 +224,11 @@ img[src="scripts/img/slider.png"]
 #map_OpenLayers_ViewPort
 	{ z-index: 0; }
 
-div.MapLoadIndicator
+div.MapStatus
 {
 	position: absolute;
-	left: 40%;
-	right: 40%;
+	left: 20%;
+	right: 20%;
 	top: 15px;
 
 	padding: 5px;
@@ -236,6 +236,8 @@ div.MapLoadIndicator
 	border: 1px solid black;
 
 	background-color: white;
+
+	text-align:  center;
 
 	z-index: 1;
 }
