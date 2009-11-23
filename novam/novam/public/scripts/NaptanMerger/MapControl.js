@@ -36,7 +36,8 @@ NaptanMerger.MapControl = Class.create({
 		this.map = new OpenLayers.Map(container, {
 			controls: [
 				new OpenLayers.Control.Navigation(),
-				new OpenLayers.Control.PanZoomBar()
+				new OpenLayers.Control.PanZoomBar(),
+				new OpenLayers.Control.LayerSwitcher()
 			],
 			units: 'm',
 			projection: this.EPSG900913,
@@ -55,7 +56,16 @@ NaptanMerger.MapControl = Class.create({
 			transitionEffect: "resize"
 		});
 		this.map.addLayer(mapnik);
-		
+
+		var wms = new OpenLayers.Layer.WMS("NPTG WMS", "http://localhost:8000/", {
+			layers: "__all__",
+			transparent: "TRUE",
+			crs: "EPSG:900913"
+		}, {
+			displayOutsideMaxExtent: true
+		});
+		this.map.addLayer(wms);
+
 		// Define styling for the marker layer:
 		var styleMap = new OpenLayers.StyleMap({
 			'default': new OpenLayers.Style({
@@ -145,9 +155,10 @@ NaptanMerger.MapControl = Class.create({
 	},
 
 	destroy: function() {
-		this.markerControl = null;
-		this.marker_layer = null;
 		this.map = null;
+		this.marker_layer = null;
+		this.feature_control = null;
+		this.map_status = null;
 		this.model = null;
 	},
 

@@ -60,9 +60,7 @@ NaptanMerger.Model = Class.create({
 			if (this.is_locality_highlighted(id)) {
 				this.unhighlight_locality();
 			}
-			if (this.is_locality_marked(id)) {
-				this.unmark_locality();
-			}
+			this.unmark_locality(id);
 			this.events.triggerEvent("locality_removed", locality);
 		}
 	},

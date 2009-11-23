@@ -5,6 +5,7 @@ from pylons.decorators import jsonify
 from pylons.decorators.rest import restrict
 import sqlalchemy.sql.expression as sql
 from datetime import datetime
+from geoalchemy import *
 
 from novam.lib.base import BaseController
 from novam import model
@@ -21,11 +22,11 @@ class LocalitiesController(BaseController):
 
 		if "bbox" in request.GET:
 			bbox_str = request.GET.get("bbox")
-			bbox = bbox_str.split(",")
-			localities_query = localities_query.filter(sql.and_(
-				model.Locality.lat.between(bbox[1], bbox[3]),
-				model.Locality.lon.between(bbox[0], bbox[2])
-			))
+			bbox = ( float(c) for c in bbox_str.split(",") )
+			bbox_geom = "GEOMETRYCOLLECION(POINT(%f %f), POINT(%f %f))" % tuple(bbox)
+			localities_query = localities_query.filter(
+				model.Locality.coords.within(WKTSpatialElement(bbox_geom))
+			)
 
 		elif "duplicates_of" in request.GET:
 			locality_id = request.GET.get("duplicates_of")
@@ -68,8 +69,8 @@ class LocalitiesController(BaseController):
 				tags_struct[tag] = locality.tags[tag].value
 			localities_struct.append({
 				"id": locality.id,
-				"lat": float(locality.lat),
-				"lon": float(locality.lon),
+				"lat": float(session.scalar(locality.coords.y)),
+				"lon": float(session.scalar(locality.coords.x)),
 				"osm_id": locality.osm_id,
 				"osm_version": locality.osm_version,
 				"name": locality.name,
@@ -91,8 +92,8 @@ class LocalitiesController(BaseController):
 			hidden = locality.hidden.strftime("%c")
 		locality_struct = {
 			"id": locality.id,
-			"lat": float(locality.lat),
-			"lon": float(locality.lon),
+			"lat": float(session.scalar(locality.coords.y)),
+			"lon": float(session.scalar(locality.coords.x)),
 			"osm_id": locality.osm_id,
 			"osm_version": locality.osm_version,
 			"name": locality.name,
@@ -152,8 +153,8 @@ class LocalitiesController(BaseController):
 					tags_struct[tag] = locality.tags[tag].value
 				localities_struct.append({
 					"id": locality.id,
-					"lat": float(locality.lat),
-					"lon": float(locality.lon),
+					"lat": float(session.scalar(locality.coords.y)),
+					"lon": float(session.scalar(locality.coords.x)),
 					"osm_id": locality.osm_id,
 					"osm_version": locality.osm_version,
 					"name": locality.name,
@@ -209,8 +210,8 @@ class LocalitiesController(BaseController):
 					tags_struct[tag] = locality.tags[tag].value
 				localities_struct.append({
 					"id": locality.id,
-					"lat": float(locality.lat),
-					"lon": float(locality.lon),
+					"lat": float(session.scalar(locality.coords.y)),
+					"lon": float(session.scalar(locality.coords.x)),
 					"osm_id": locality.osm_id,
 					"osm_version": locality.osm_version,
 					"name": locality.name,

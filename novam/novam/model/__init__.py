@@ -7,6 +7,7 @@ import sqlalchemy as sa
 from sqlalchemy import orm
 from sqlalchemy.orm.collections import column_mapped_collection
 import sqlalchemy.sql.expression as sql
+from geoalchemy import *
 
 from novam.model import meta
 
@@ -16,8 +17,12 @@ def init_model(engine, planet_timestamp_file):
 
 	global localities, tags
 
-	localities = sa.Table("Localities", meta.metadata, autoload=True, autoload_with=engine)
-	tags = sa.Table("Tags", meta.metadata, autoload=True, autoload_with=engine)
+	localities = sa.Table("localities", meta.metadata, 
+		Column("coords", Point(2)),
+		autoload=True, autoload_with=engine)
+	tags = sa.Table("tags", meta.metadata, autoload=True, autoload_with=engine)
+
+	GeometryDDL(localities)
 
 	# This alias makes it easier to define the *_count columns:
 	neighbours = localities.alias("neighbours")
@@ -27,6 +32,8 @@ def init_model(engine, planet_timestamp_file):
 	# ids while OSM uses positive ids.
 
 	orm.mapper(Locality, localities, properties={
+		"coords": orm.column_property(localities.c.coords, comparator_factory=SFSComparator,
+			extension=SpatialAttribute()), # Why is this not needed?
 		"tags": orm.relation(Tag, collection_class=column_mapped_collection(tags.c.name), \
 				lazy=False, passive_deletes=True),
 		"duplicate_count": orm.column_property(sql.select(
@@ -37,10 +44,7 @@ def init_model(engine, planet_timestamp_file):
 				sql.func.sign(localities.c.osm_id) == sql.func.sign(neighbours.c.osm_id),
 				localities.c.osm_id != neighbours.c.osm_id,
 				localities.c.name == neighbours.c.name,
-				sql.func.sqrt(
-					sql.func.pow(localities.c.lat - neighbours.c.lat, 2) +
-					sql.func.pow(localities.c.lon - neighbours.c.lon, 2)
-				) < 0.1
+				sql.func.Distance(localities.c.coords, neighbours.c.coords) < 0.1
 			),
 		).label("duplicate_count")),
 		"match_count": orm.column_property(sql.select(
@@ -50,10 +54,7 @@ def init_model(engine, planet_timestamp_file):
 				neighbours.c.hidden == None,
 				sql.func.sign(localities.c.osm_id) != sql.func.sign(neighbours.c.osm_id),
 				localities.c.name == neighbours.c.name,
-				sql.func.sqrt(
-					sql.func.pow(localities.c.lat - neighbours.c.lat, 2) +
-					sql.func.pow(localities.c.lon - neighbours.c.lon, 2)
-				) < 0.1
+				sql.func.Distance(localities.c.coords, neighbours.c.coords) < 0.1
 			),
 		).label("match_count"))
 	})
@@ -70,8 +71,7 @@ localities = None
 
 class Locality(object):
 	def __init__(self, lat, lon, osm_id=None, osm_version=None, name=None, hidden=None, comment=None):
-			self.lat = lat
-			self.lon = lon
+			self.coords = WKTSpatialElement("POINT(%f %f)" % (lon, lat))
 			self.osm_id = osm_id
 			self.osm_version = osm_version
 			self.name = name
@@ -79,7 +79,7 @@ class Locality(object):
 			self.comment = comment
 
 	def __repr__(self):
-		return "Locality(id=%s, lat=%s, lon=%s, osm_id=%s)" % (self.id, self.lat, self.lon, self.osm_id)
+		return "Locality(id=%s, coords=%s, osm_id=%s)" % (self.id, self.coords.wkt, self.osm_id)
 
 tags = None
 

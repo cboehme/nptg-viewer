@@ -1,8 +1,0 @@
-- Add busstop controller
-- Write import function that updates the database based on an osm file:
-  1. Check if osm id exists: if yes delete tags and add new tags and
-     update position
-	 Else add node
-- Write query stops function that returns all stops within a bounding box
-- Write clientside that displays all busstops on a map
-- Write similar stops function

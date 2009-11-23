@@ -1,27 +1,32 @@
-CREATE TABLE Localities (
-	id BIGINT UNSIGNED AUTO_INCREMENT,
-	lat DECIMAL(10,7) NOT NULL,
-	lon DECIMAL(10,7) NOT NULL,
-	osm_id BIGINT SIGNED,
-	osm_version BIGINT UNSIGNED,
-	name VARCHAR(255),
-	hidden DATETIME DEFAULT NULL,
-	comment VARCHAR(255) DEFAULT NULL,
-	PRIMARY KEY (id),
-	INDEX (lat, lon),
-	INDEX (osm_id, osm_version),
-	UNIQUE (osm_id),
-	INDEX (name)
-	)
-ENGINE=InnoDB;
+-- Configure postGIS:
+-- CREATE LANGUAGE plpgsql;
+-- \i /usr/share/postgresql/contrib/lwpostgis.sql
+-- \i /usr/share/postgresql/contrib/spatial_ref_sys.sql
 
-CREATE TABLE Tags (
-	locality_id BIGINT UNSIGNED,
+CREATE SEQUENCE localities_id_seq;
+CREATE TABLE localities (
+	id INTEGER DEFAULT nextval('localities_id_seq') NOT NULL PRIMARY KEY,
+	osm_id BIGINT NOT NULL UNIQUE,
+	osm_version BIGINT NOT NULL CHECK (osm_version > 0),
+	name VARCHAR(255),
+	hidden TIMESTAMP DEFAULT NULL,
+	comment VARCHAR(255) DEFAULT NULL
+	);
+ALTER SEQUENCE localities_id_seq OWNED BY localities.id;
+
+SELECT AddGeometryColumn('localities', 'coords', 4326, 'POINT', 2);
+
+CREATE INDEX localities_coords_idx ON localities USING GIST (coords);
+CREATE INDEX localities_osm_id_osm_version_idx ON localities (osm_id, osm_version);
+CREATE INDEX localities_name_idx ON localities (name);
+
+
+CREATE TABLE tags (
+	locality_id INTEGER NOT NULL
+		REFERENCES localities(id) ON DELETE CASCADE,
 	name VARCHAR(255) NOT NULL,
-	value TEXT NOT NULL,
-	PRIMARY KEY (locality_id, name),
-	FOREIGN KEY (locality_id)
-		REFERENCES Localities(id)
-		ON DELETE CASCADE
-	)
-ENGINE=InnoDB;
+	value VARCHAR(65535) NOT NULL,  -- based on MySQL's TEXT type
+	PRIMARY KEY (locality_id, name)
+	);
+
+VACUUM ANALYZE;

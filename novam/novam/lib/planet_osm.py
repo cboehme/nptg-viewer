@@ -67,8 +67,8 @@ class Importer(_TransactionHandling, ContentHandler, ErrorHandler):
 					self.valid_path.append(True)
 				elif len(self.valid_path) == 2 and name == "node":
 					self.current_locality = model.Locality(
-						attrs.getValue("lat"), attrs.getValue("lon"),
-						attrs.getValue("id"), attrs.getValue("version")
+						float(attrs.getValue("lat")), float(attrs.getValue("lon")),
+						int(attrs.getValue("id")), int(attrs.getValue("version"))
 					)
 					self._begin()
 					session.add(self.current_locality)

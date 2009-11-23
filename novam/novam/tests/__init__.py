@@ -14,6 +14,8 @@ from paste.script.appinstall import SetupCommand
 from pylons import config, url
 from routes.util import URLGenerator
 from webtest import TestApp
+from geoalchemy import *
+from sqlalchemy.sql.expression import select
 
 import pylons.test
 
@@ -41,13 +43,21 @@ class TestController(TestCase):
 def table_contents(table, contents):
 	connection = meta.engine.connect()
 	result = connection.execute(table.select())
-	connection.close()
 	rows = result.fetchall()
 	for row in rows[:]:
-		print row
-		if row in contents:
-			contents.remove(row)
-			rows.remove(row)
+		for data in contents:
+			is_same = True
+			for rc, dc in zip(row, data):
+				if isinstance(rc, PGPersistentSpatialElement):
+					is_same = is_same and \
+						connection.execute(rc.wkt).scalar() == connection.execute(dc.wkt).scalar()
+				else:
+					is_same = is_same and rc == dc
+			if is_same:
+				contents.remove(data)
+				rows.remove(row)
+				break
+	connection.close()
 	return len(rows) == 0 and len(contents) == 0
 
 def table_is_empty(table):
