@@ -36,7 +36,8 @@ NaptanMerger.MapControl = Class.create({
 		this.map = new OpenLayers.Map(container, {
 			controls: [
 				new OpenLayers.Control.Navigation(),
-				new OpenLayers.Control.PanZoomBar()
+				new OpenLayers.Control.PanZoomBar(),
+				new OpenLayers.Control.LayerSwitcher()
 			],
 			units: 'm',
 			projection: this.EPSG900913,
@@ -55,7 +56,13 @@ NaptanMerger.MapControl = Class.create({
 			transitionEffect: "resize"
 		});
 		this.map.addLayer(mapnik);
-		
+	
+		// Create out-of-copyright-maps base layers:
+		var ooc_npe = new OpenLayers.Layer.NPE("OS NPE (1:50000)");
+		var ooc_os7 = new OpenLayers.Layer.OS7("OS 7th Series (1:50000)");
+		var ooc_os1 = new OpenLayers.Layer.OS1("OS 1st Edition (1:25000)");
+		this.map.addLayers([ooc_npe, ooc_os7, ooc_os1]);
+
 		// Define styling for the marker layer:
 		var styleMap = new OpenLayers.StyleMap({
 			'default': new OpenLayers.Style({
@@ -98,9 +105,11 @@ NaptanMerger.MapControl = Class.create({
 		styleMap.addUniqueValueRules("default", "selected", pointerLookup);
 
 		// Create the marker layer:
-		this.marker_layer = new OpenLayers.Layer.Vector('Markers', {
+		this.marker_layer = new OpenLayers.Layer.Vector("Localities", {
 			styleMap: styleMap,
-			transitionEffect: "resize"
+			transitionEffect: "resize",
+			displayInLayerSwitcher: false,
+			rendererOptions: {zIndexing: true}
 		});
 		this.map.addLayer(this.marker_layer);
 

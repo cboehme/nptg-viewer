@@ -16,8 +16,8 @@ def init_model(engine, planet_timestamp_file):
 
 	global localities, tags
 
-	localities = sa.Table("Localities", meta.metadata, autoload=True, autoload_with=engine)
-	tags = sa.Table("Tags", meta.metadata, autoload=True, autoload_with=engine)
+	localities = sa.Table("localities", meta.metadata, autoload=True, autoload_with=engine)
+	tags = sa.Table("tags", meta.metadata, autoload=True, autoload_with=engine)
 
 	# This alias makes it easier to define the *_count columns:
 	neighbours = localities.alias("neighbours")
